@@ -11,7 +11,7 @@
 - ubuntu/bionic64 vagrant box (Ubuntu 18.04) (https://app.vagrantup.com/ubuntu/boxes/bionic64)
 - Mysql (https://www.mysql.com/)
 - Nginx (https://www.nginx.com/)
-- php7.2 (php7.2-fpm) (https://gtxtymt.xyz/blog/ubuntu-install-php72-fpm)
+- php7.4 (php7.4-fpm) (https://gtxtymt.xyz/blog/ubuntu-install-php74-fpm)
 ####Helpful things (developing)
 - Adminer (https://www.adminer.org/)
 ###Local environment installation guide
@@ -82,7 +82,7 @@
     # install php
     sudo apt-add-repository ppa:ondrej/php
     sudo apt-get update
-    sudo apt-get -y install php7.2-cli php7.2-fpm php7.2-curl php7.2-gd php7.2-mysql php7.2-mbstring zip unzip php-dev
+    sudo apt install php7.4-fpm php7.4-common php7.4-mysql php7.4-xml php7.4-xmlrpc php7.4-curl php7.4-gd php7.4-imagick php7.4-cli php7.4-dev php7.4-imap php7.4-mbstring php7.4-opcache php7.4-soap php7.4-zip unzip -y
     
     # install mysql and give password to installer
     sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $PASSWORD"
@@ -92,7 +92,7 @@
     uri = 'uri'
     is_args = 'is_args'
     args = 'args'
-    echo "server {
+    sudo echo "server {
                           listen 80;
                           listen [::]:80;
                           root /var/www/axiom;
@@ -107,7 +107,7 @@
                   
                           location ~ \.php$ {
                                   include snippets/fastcgi-php.conf;
-                                  fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+                                  fastcgi_pass unix:/run/php/php7.4-fpm.sock;
                           }
                   }" > /etc/nginx/sites-available/axiom
     sudo rm /etc/nginx/sites-enabled/default

@@ -1,7 +1,19 @@
 <?php
+/**
+ * @virtual_host_entry_point index.php
+ *
+ * !!!RED ZONE!!!
+ * !!!ATTENTION!!!
+ *
+ * Override this section if you 100% sure what are you doing and for what reason
+ *
+ */
 
-require_once "global-config.php";
+use app\core\CoreController;
 
-use controller\routing\Router;
+define("ROOT_DIR",__DIR__.'/');
 
-Router::URLActionEntryPoint();
+require_once ROOT_DIR."/settings/fr_namespace_resolver/default.php";
+
+$app = new CoreController();
+$app->execute();
