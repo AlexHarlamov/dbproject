@@ -19,6 +19,8 @@ class Env
     /**
      * @param string $varName
      * @param $varValue
+     *
+     * Set environment variable value by name
      */
 
     public static function set(string $varName, $varValue): void{
@@ -30,6 +32,7 @@ class Env
      * @return mixed
      * @throws UndefinedEnvVariableException
      *
+     * Get environment variable value by name
      */
 
     public static function get(string $varName)

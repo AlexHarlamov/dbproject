@@ -10,6 +10,13 @@ use PDO;
 use PDOException;
 use PDOStatement;
 
+
+/**
+ * Class FR_DatabaseWorker
+ * @package app\core\application\database
+ *
+ * Default request configurator and executor, provides access to th database
+ */
 class FR_DatabaseWorker implements Application
 {
     private PDO $db;
@@ -29,6 +36,20 @@ class FR_DatabaseWorker implements Application
         $this->db = new PDO(DB_DSN, DB_USERNAME, DB_PASSWORD, $opt);
     }
 
+    /**
+     * @param array $params
+     * @return array
+     *
+     * SELECT type request constructor
+     *
+     * request template :
+     *
+     * SELECT "what" ("*"-default) FROM "from"
+     * (isset("filter") ? WHERE "filter_field0" = "condition0" AND ..." : none )
+     * (isset("limit") ? LIMIT "limit" : none )
+     * (isset("offset") ? OFFSET "offset" : none )
+     *
+     */
     public function select(array $params)
     {
 
@@ -54,6 +75,9 @@ class FR_DatabaseWorker implements Application
 
         if(!empty($params["limit"]))
             $limit = $params["limit"];
+
+        if(!empty($params["offset"]))
+            $offset = $params["offset"];
 
         $this->request = "";
 
@@ -97,6 +121,13 @@ class FR_DatabaseWorker implements Application
         return $this->result;
     }
 
+    /**
+     * @param $names
+     * @param $values
+     * @return array|null
+     *
+     * matches name value
+     */
     private function wrapMassViaNames($names,$values){
         if(empty($names) || empty($values)) return NULL;
 

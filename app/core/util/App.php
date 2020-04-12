@@ -19,6 +19,8 @@ class App
     /**
      * @param array $fr_App
      * @throws IllegalAppRegistrationException
+     *
+     * Method for importing applications' instances
      */
     public static function setFrApp(array $fr_App): void
     {
@@ -37,6 +39,8 @@ class App
      * @throws UndefinedApplicationCallException
      * @throws UndefinedMethodCallException
      * @throws Exception
+     *
+     * Provides functionality of calling methods in the safe environment
      */
     public static function call($appName, $methodName, $variables){
         if(isset(self::$fr_App[$appName])){
@@ -59,6 +63,7 @@ class App
      * @return mixed
      * @throws UndefinedApplicationCallException
      *
+     * Provides functionality of getting instance of the application
      */
 
     public static function getApp($appName){
