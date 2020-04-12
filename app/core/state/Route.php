@@ -6,6 +6,10 @@ namespace app\core\state;
 
 use app\core\CoreState;
 
+/**
+ * Class Route
+ * @package app\core\state
+ */
 class Route implements CoreState
 {
 

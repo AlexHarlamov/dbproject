@@ -5,7 +5,9 @@ namespace app\core\state;
 
 
 use app\core\CoreState;
+use app\core\exception\IllegalAppRegistrationException;
 use app\core\exception\IllegalHookException;
+use app\core\util\App;
 
 /**
  * Class Init
@@ -57,23 +59,15 @@ class Init implements CoreState
     }
 
     /**
-     * @var array $fr_applicationList
-     *
-     * List of the exported applications
-     *
-     */
-
-    private array $fr_applicationList = array();
-
-    /**
      * Save list of the instantiated applications
      * @param array $fr_applicationsList
      */
 
     function fr_exportApplications (array $fr_applicationsList){
-        $this->fr_applicationList = $fr_applicationsList;
+        try {
+            App::setFrApp($fr_applicationsList);
+        } catch (IllegalAppRegistrationException $e) {
+            echo DEFAULT_APP_REG_ERR;
+        }
     }
-
-    //TODO: implement application call functionality
-
 }

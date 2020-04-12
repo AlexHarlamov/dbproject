@@ -27,3 +27,9 @@ define("HOOK_WORKER","fr_hook_worker");
  */
 
 define("DEFAULT_EXIT_POINT","app\core\state\ExitPoint");
+
+/**
+ * Definition of the error messages
+ */
+
+define("DEFAULT_APP_REG_ERR", "Core module Init has troubles, application registration failed");
