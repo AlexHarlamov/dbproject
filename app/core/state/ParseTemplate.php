@@ -5,6 +5,10 @@ namespace app\core\state;
 
 
 use app\core\CoreState;
+use app\core\exception\UndefinedApplicationCallException;
+use app\core\exception\UndefinedEnvVariableException;
+use app\core\exception\UndefinedMethodCallException;
+use app\core\util\App;
 use app\core\util\Env;
 use Exception;
 
@@ -28,9 +32,20 @@ class ParseTemplate implements CoreState
     function fr_defaultAction(): CoreState
     {
         // TODO: Implement fr_defaultAction() method.
-        $p = Env::get("page");
-        $s = "app\core\pages\\$p";
-        $s::fr_parse_template();
+
+        try {
+            $html = App::call(TEMPLATE_WORKER, "simpleInjecting", [
+                "template" => Env::get("VIEW_TEMPLATE"),
+                "vars" => Env::get("VIEW_DATA")
+            ]);
+
+            Env::set("FR_OUTPUT_BUFFER",$html);
+        } catch (UndefinedApplicationCallException $e) {
+        } catch (UndefinedEnvVariableException $e) {
+        } catch (UndefinedMethodCallException $e) {
+        } catch (Exception $e) {
+        }
+
         return $this->fr_DefaultNextCoreStateAfterParseTemplate;
     }
 

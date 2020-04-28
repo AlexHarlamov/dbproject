@@ -5,7 +5,9 @@ namespace app\core\state;
 
 
 use app\core\CoreState;
+use app\core\exception\UndefinedEnvVariableException;
 use app\core\util\Env;
+use Exception;
 
 
 /**
@@ -43,31 +45,21 @@ class Route implements CoreState
     function fr_defaultAction(): CoreState
     {
 
-        $url = $_SERVER['REQUEST_URI'];
-        $path= parse_url($url, PHP_URL_PATH);
-        $array = explode("/", trim($path, "/"));
-        $page = array_pop($array);
-        //print_r($page);
-        Env::set("page",$page);
-        if($page==""){echo "такой страницы нет";}//TODO: обработать
-        //echo $page;
+        $this->prepareEnvVariables();
 
-        switch ($_SERVER['REQUEST_METHOD']){
-            case "GET":{
-                $this->getHandler();
-                break;}
-            case "POST": {
-                $this->postHandler();
-                break;}
-            case "PUT" :{
-                $this->putHandler();
-                break;}
-            case "DELETE":{
-                $this->deleteHandler();
-                break;}
-            default : {
-        //TODO: error handling
-    }
+        try {
+            switch (Env::get("FR_ACTION")){
+                case "GET":
+                    $this->checkAvailableGetScripts();
+                    break;
+                default :
+               throw new Exception();
+            }
+        }catch (UndefinedEnvVariableException $e){
+            Env::set("FR_ACTION", "ERROR");
+            Env::set("TEMPLATE_ID", NO_ACTION_EXCEPTION_TEMPLATE_ID);
+        }catch (Exception $e){
+
         }
 
         return $this->fr_DefaultNextCoreStateAfterRoute;
@@ -76,6 +68,37 @@ class Route implements CoreState
     function fr_executeHookCallbacks($state_option = null)
     {
         // TODO: Implement fr_executeHookCallbacks() method.
+    }
+
+
+    private function checkAvailableGetScripts(){
+
+        if(isset($_GET["ELEMENT_ID"])){
+            Env::set("ELEMENT_ID",$_GET["ELEMENT_ID"]);
+            if(isset($_GET["TEMPLATE_ID"])){
+                Env::set("TEMPLATE_ID",$_GET["TEMPLATE_ID"]);
+            }
+        }elseif(isset($_GET["CLASS_ID"])){
+            Env::set("CLASS_ID",$_GET["CLASS_ID"]);
+            if(isset($_GET["TEMPLATE_ID"])){
+                Env::set("TEMPLATE_ID",$_GET["TEMPLATE_ID"]);
+            }
+            throw new Exception();
+        }else{
+            throw new Exception();
+        }
+    }
+
+    private function prepareEnvVariables(){
+
+        $url = $_SERVER['REQUEST_URI'];
+        $path= parse_url($url, PHP_URL_PATH);
+        $array = explode("/", trim($path, "/"));
+
+        Env::set("FR_URL",$url);
+        Env::set("FR_PATH",$path);
+        Env::set("FR_ACTION",$array[0]);
+
     }
 
     /**
@@ -87,7 +110,6 @@ class Route implements CoreState
         parse_str($_SERVER['QUERY_STRING'], $queries);
         foreach ($queries as $k => $v){
             Env::set($k,$v);
-            //echo $k."=".$v;
         }
 
         $this->fr_DefaultNextCoreStateAfterRoute = new PrepareData();

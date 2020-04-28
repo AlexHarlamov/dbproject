@@ -34,3 +34,9 @@ define("DEFAULT_EXIT_POINT","app\core\state\ExitPoint");
  */
 
 define("DEFAULT_APP_REG_ERR", "Core module Init has troubles, application registration failed");
+
+/**
+ * Default exceptions' templates
+ */
+
+define("NO_ACTION_EXCEPTION_TEMPLATE_ID",1);

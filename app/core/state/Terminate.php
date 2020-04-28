@@ -5,6 +5,8 @@ namespace app\core\state;
 
 
 use app\core\CoreState;
+use app\core\exception\UndefinedEnvVariableException;
+use app\core\util\Env;
 
 class Terminate implements CoreState
 {
@@ -24,9 +26,20 @@ class Terminate implements CoreState
     }
 
 
+    private function defaultOutputAction(){
+
+        try {
+            echo Env::get("FR_OUTPUT_BUFFER");
+        } catch (UndefinedEnvVariableException $e) {
+        }
+
+    }
+
     function fr_defaultAction(): CoreState
     {
         // TODO: Implement fr_defaultAction() method.
+
+        $this->defaultOutputAction();
 
         return $this->fr_DefaultNextCoreStateAfterExit;
     }
