@@ -42,18 +42,6 @@ class Route implements CoreState
 
     function fr_defaultAction(): CoreState
     {
-        /* it will be deleted
-        $lines = array();
-        $fileHandler = fopen("php://input", "r");
-        while( !feof($fileHandler)  ) {
-            $lines[] = fgets($fileHandler,255);
-        }
-        fclose($fileHandler);
-        print_r($lines);
-        //
-        $entityBody = file_get_contents('php://input');
-        echo $entityBody."<br />";
-        */
 
         $url = $_SERVER['REQUEST_URI'];
         $path= parse_url($url, PHP_URL_PATH);
