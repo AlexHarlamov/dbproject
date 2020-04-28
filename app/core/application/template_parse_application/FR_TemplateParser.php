@@ -31,7 +31,6 @@ class FR_TemplateParser implements Application
 
         $template = $params["template"];
         $vars = $params["vars"];
-
         $result = $template;
 
         foreach ($vars as $var => $val){

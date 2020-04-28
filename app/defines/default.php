@@ -21,6 +21,7 @@ define("TEMPLATE_WORKER","fr_template_worker");
 define("DATABASE_WORKER","fr_database_worker");
 define("WARNING_INFORMER","fr_warning_informer");
 define("HOOK_WORKER","fr_hook_worker");
+define("REQUEST_PARSER","fr_route_parser");
 
 /**
  * Definition of the default exit point state name

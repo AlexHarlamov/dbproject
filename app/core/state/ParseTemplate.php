@@ -5,7 +5,6 @@ namespace app\core\state;
 
 
 use app\core\CoreState;
-use app\core\util\App;
 use app\core\util\Env;
 use Exception;
 
@@ -29,7 +28,7 @@ class ParseTemplate implements CoreState
     function fr_defaultAction(): CoreState
     {
         // TODO: Implement fr_defaultAction() method.
-        try {
+        /*try {
             echo App::call(TEMPLATE_WORKER, "simpleInjecting", [
                 "template" => "@1 @2 ",
                 "vars" => [
@@ -53,7 +52,10 @@ class ParseTemplate implements CoreState
         } catch (Exception $exception){
             echo $exception;
         }
-
+        */
+        $p = Env::get("page");
+        $s = "app\core\pages\\$p";
+        $s::fr_parse_template();
         return $this->fr_DefaultNextCoreStateAfterParseTemplate;
     }
 

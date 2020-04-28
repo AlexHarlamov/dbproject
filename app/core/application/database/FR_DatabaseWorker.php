@@ -52,6 +52,7 @@ class FR_DatabaseWorker implements Application
      */
     public function select(array $params)
     {
+        $this->conditions = NULL;
 
         if(!empty($params["what"]))
             $what = $params["what"];
