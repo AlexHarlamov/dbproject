@@ -100,35 +100,6 @@ class Route implements CoreState
         Env::set("FR_ACTION",$array[0]);
 
     }
-
-    /**
-     * functions handle html methods
-     */
-    private function getHandler()
-    {
-        $queries = array();
-        parse_str($_SERVER['QUERY_STRING'], $queries);
-        foreach ($queries as $k => $v){
-            Env::set($k,$v);
-        }
-
-        $this->fr_DefaultNextCoreStateAfterRoute = new PrepareData();
-
-    }
-
-    private function postHandler()
-    {
-
-    }
-
-    private function putHandler()
-    {
-
-    }
-
-    private function deleteHandler()
-    {
-
-    }
+    
 
 }
