@@ -100,6 +100,6 @@ class Route implements CoreState
         Env::set("FR_ACTION",$array[0]);
 
     }
-    
+
 
 }

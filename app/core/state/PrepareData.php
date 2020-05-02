@@ -14,6 +14,8 @@ use app\core\util\App;
 use app\core\util\Env;
 use Exception;
 
+include "lemma_language_lib.php";
+
 class PrepareData implements CoreState
 {
 
@@ -30,7 +32,6 @@ class PrepareData implements CoreState
     {
         $this->fr_DefaultNextCoreStateAfterPrepareDate = new ParseTemplate();
     }
-
 
     function fr_defaultAction(): CoreState
     {
@@ -66,50 +67,25 @@ class PrepareData implements CoreState
         return $this->fr_DefaultNextCoreStateAfterPrepareDate;
     }
 
-    private function checkRegularExpressions(){
-        //check for regular expr inside "VIEW_TEMPLATE"
-        //@list_table:<lemma_current>
-        $data = [];
-        Env::set("VIEW_TEMPLATE__REGEX__LIST_TABLE__NAME_CLASSES",$data);
-    }
 
     /**
      * @param $classId
      * @param $templateId
      *
      * Prepare data for Class
-     * Предполагаем, что всегда есть дефолтный шаблон,
-     * если его нет - то это серьезная проблема, которую срочно нужно решать
      */
 
     private function prepareClassData($classId,$templateId){
 
-        try {
-            Env::set("VIEW_TEMPLATE",$this->getTemplate($templateId));
-        } catch (UndefinedTemplateException $e) {
-            Env::set("FR_ACTION", "ERROR");
-            Env::set("TEMPLATE_ID", NO_ACTION_EXCEPTION_TEMPLATE_ID);
-        }
+        $function = '@class('.$classId.','.$templateId.')';
+        $result = classPrepare($function,$classId,$templateId);
 
-        try {
-            $arr = App::call(DATABASE_WORKER, "select", [
-                "from" => "lemma_classes",
-                "what" => [
-                    "*"
-                ],
-                "filter" => [
-                    "ID"
-                ],
-                "conditions" => [
-                    $classId
-                ]
-            ]);
-            Env::set("VIEW_DATA",$arr[0]); //get data
+        $templateNode['CURRENT_TEMPLATE'] = $function;
+        $templateNode[$result['tempK']] = $result['tempV'];
+        $dataNode[$result['dataK']] = $result['dataV'];
 
-        } catch (UndefinedApplicationCallException $e) {
-        } catch (UndefinedMethodCallException $e) {
-        }
-
+        Env::set("VIEW_TEMPLATE",$templateNode);
+        Env::set("VIEW_DATA",$dataNode);
     }
 
     /**
@@ -117,53 +93,21 @@ class PrepareData implements CoreState
      * @param $templateId
      *
      * Prepare data for Element
+     *
      */
-
     private function prepareElementData($elementId,$templateId){
 
-        $currentTemplate ="";
+        $function = '@element('.$elementId.','.$templateId.')';
+        $result = elementPrepare($function,$elementId,$templateId);
 
-        try {
-            $currentTemplate = $this->getTemplate($templateId);
-        } catch (UndefinedTemplateException $e) {
-            Env::set("FR_ACTION", "ERROR");
-            Env::set("TEMPLATE_ID", NO_ACTION_EXCEPTION_TEMPLATE_ID);
-        }
+        $templateNode['CURRENT_TEMPLATE'] = $function;
+        $templateNode[$result['tempK']] = $result['tempV'];
+        $dataNode[$result['dataK']] = $result['dataV'];
 
+        Env::set("VIEW_TEMPLATE",$templateNode);
+        Env::set("VIEW_DATA",$dataNode);
 
     }
-
-    /**
-     * @param $templateId
-     * @throws UndefinedTemplateException
-     *
-     * Returns body of template by it's id
-     */
-    private function getTemplate($templateId){
-        try {
-            $arr = App::call(DATABASE_WORKER, "select", [
-                "from" => "lemma_templates",
-                "what" => [
-                    "BODY"
-                ],
-                "filter" => [
-                    "ID"
-                ],
-                "conditions" => [
-                    $templateId
-                ]
-            ]);
-            if (empty($arr)) {
-                throw  new UndefinedTemplateException("template with id $templateId does not exist");
-            }else{
-                return ($arr[0])["BODY"];
-            }
-        } catch (UndefinedApplicationCallException $e) {
-        } catch (UndefinedMethodCallException $e) {
-            //TODO:Handle
-        }
-    }
-
 
 
     function fr_executeHookCallbacks($state_option = null)

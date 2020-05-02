@@ -33,18 +33,17 @@ class ParseTemplate implements CoreState
     {
         // TODO: Implement fr_defaultAction() method.
 
-        try {
-            $html = App::call(TEMPLATE_WORKER, "simpleInjecting", [
+        $template = Env::get("VIEW_TEMPLATE");
+        $data = Env::get("VIEW_DATA");
+        $html = recursionParseLoop($template,$data);
+
+            /*$html = App::call(TEMPLATE_WORKER, "simpleInjecting", [
                 "template" => Env::get("VIEW_TEMPLATE"),
                 "vars" => Env::get("VIEW_DATA")
-            ]);
+            ]);*/
 
-            Env::set("FR_OUTPUT_BUFFER",$html);
-        } catch (UndefinedApplicationCallException $e) {
-        } catch (UndefinedEnvVariableException $e) {
-        } catch (UndefinedMethodCallException $e) {
-        } catch (Exception $e) {
-        }
+        Env::set("FR_OUTPUT_BUFFER",$html);
+
 
         return $this->fr_DefaultNextCoreStateAfterParseTemplate;
     }
