@@ -76,3 +76,7 @@ $this->fr_exportApplications([
     DATABASE_WORKER => $DEFAULT_DATABASE_WORK_APPLICATION,
     WARNING_INFORMER => $DEFAULT_WARNING_INFORMER
 ]);
+
+/**
+ * JavaScript attachment section
+ */

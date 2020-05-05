@@ -36,32 +36,31 @@ class PrepareData implements CoreState
     function fr_defaultAction(): CoreState
     {
         try {
-                switch (Env::get("FR_ACTION")){
-                    case "GET":
-                        if(Env::contains("ELEMENT_ID") ){
-
-                            if(Env::contains("TEMPLATE_ID")){
-                                $this->prepareElementData(Env::get("ELEMENT_ID"),Env::get("TEMPLATE_ID"));
-                            }
-                            else{
-                                $this->prepareElementData(Env::get("ELEMENT_ID"),DEFAULT_ELEMENT_TEMPLATE_ID);
-                            }
-
+            switch (Env::get("FR_ACTION")){
+                case "GET":
+                    if(Env::contains("ELEMENT_ID") ){
+                        if(Env::contains("TEMPLATE_ID")){
+                            $this->prepareElementData(Env::get("ELEMENT_ID"),Env::get("TEMPLATE_ID"));
                         }
-                        elseif(Env::contains("CLASS_ID") ){
-
-                            if(Env::contains("TEMPLATE_ID")){
-                                $this->prepareClassData(Env::get("CLASS_ID"),Env::get("TEMPLATE_ID"));
-                            }
-                            else{
-                                $this->prepareClassData(Env::get("CLASS_ID"),DEFAULT_CLASS_TEMPLATE_ID);
-                            }
+                        else{
+                            $this->prepareElementData(Env::get("ELEMENT_ID"),DEFAULT_ELEMENT_TEMPLATE_ID);
                         }
-                        break;
-                    default :
-                        throw new Exception();
-                }
+                    }
+                    elseif(Env::contains("CLASS_ID") ){
+
+                        if(Env::contains("TEMPLATE_ID")){
+                            $this->prepareClassData(Env::get("CLASS_ID"),Env::get("TEMPLATE_ID"));
+                        }
+                        else{
+                            $this->prepareClassData(Env::get("CLASS_ID"),DEFAULT_CLASS_TEMPLATE_ID);
+                        }
+                    }
+                    break;
+                default :
+                    throw new Exception();
+            }
         } catch (Exception $e) {
+            //TODO: Do not ignore
         }
 
         return $this->fr_DefaultNextCoreStateAfterPrepareDate;
