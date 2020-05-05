@@ -138,12 +138,12 @@ function recursionPrepare($str, $currentData){
 
     /*function f2*/
     preg_match(DEFAULT_F2_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL);
-    if(!empty($matches) && isset($matches['id1']) && isset($matches['id1']) ){
+    if(!empty($matches) && isset($matches['id1']) && isset($matches['id2']) ){
         switch ($matches['fName']){
             case 'element':
-                return elementPrepare($matches[0],$matches['id1'],$matches['id1']);
+                return elementPrepare($matches[0],$matches['id1'],$matches['id2']);
             case 'class':
-                return classPrepare($matches[0],$matches['id1'],$matches['id1']);
+                return classPrepare($matches[0],$matches['id1'],$matches['id2']);
             default:
                 return null;
         }
@@ -330,10 +330,20 @@ function recursionParseLoop($template,$data){
         preg_match(DEFAULT_VAR_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL);
         if(!empty($matches) && isset($currentData[$matches[0]])){
             $currentTemplate = variableParse($currentTemplate,$currentData);
+            $str = $currentTemplate;
+            $template['CURRENT_TEMPLATE'] = $currentTemplate;
+            $pos = strpos($str, '@');
+            continue;
         }
 
         /*function f1*/
         preg_match(DEFAULT_F1_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL);
+        if(!empty($matches)){
+            //TODO:realization
+        }
+
+        /*function concatenation*/
+        preg_match(DEFAULT_CONCATENATION_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL);
         if(!empty($matches)){
             //TODO:realization
         }
@@ -344,22 +354,21 @@ function recursionParseLoop($template,$data){
             switch ($matches['fName']){
                 case 'element':
                     $currentTemplate =  elementParse($template,$currentData[$matches[0]],$matches[0]);
+                    $str = $currentTemplate;
+                    $template['CURRENT_TEMPLATE'] = $currentTemplate;
+                    $pos = strpos($str, '@');
                     break;
                 case 'class':
                     $currentTemplate =  classParse($template,$currentData[$matches[0]],$matches[0]);
+                    $str = $currentTemplate;
+                    $template['CURRENT_TEMPLATE'] = $currentTemplate;
+                    $pos = strpos($str, '@');
                     break;
                 default:
                     //TODO:handle
             }
         }
 
-        /*function concatenation*/
-        preg_match(DEFAULT_CONCATENATION_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL);
-        if(!empty($matches)){
-            //TODO:realization
-        }
-        $str = substr($str, 1);
-        $pos = strpos($str, '@');
     }
     return $currentTemplate;
 }

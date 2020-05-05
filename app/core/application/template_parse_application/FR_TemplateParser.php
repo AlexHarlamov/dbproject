@@ -34,7 +34,9 @@ class FR_TemplateParser implements Application
         $result = $template;
 
         foreach ($vars as $var => $val){
-            $result = str_replace("$var",$val, $result);
+            if(!is_array($val)){
+                $result = str_replace("$var",$val, $result);
+            }
         }
 
         return $result;

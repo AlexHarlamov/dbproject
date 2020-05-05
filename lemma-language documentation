@@ -61,7 +61,7 @@ __________________________________________________
 @element(element_id,template_id)
     = шаблон,чей id - это template_id
 
-@class(class_id,class_id)
+@class(class_id,template_id)
     = шаблон,чей id - это template_id
 
 
