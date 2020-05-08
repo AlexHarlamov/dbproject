@@ -22,6 +22,8 @@ define("DATABASE_WORKER","fr_database_worker");
 define("WARNING_INFORMER","fr_warning_informer");
 define("HOOK_WORKER","fr_hook_worker");
 define("REQUEST_PARSER","fr_route_parser");
+define("JAVASCRIPT_WORKER","fr_js_worker");
+define("HTML_WORKER","fr_html_worker");
 
 /**
  * Definition of the default exit point state name
@@ -80,3 +82,16 @@ define("DEFAULT_F2_PATTERN","/(?<fTemp>@(?<fName>\w+))\((?<id1>\s*[0-9]+\s*),(?<
  */
 
 define("DEFAULT_CONCATENATION_PATTERN","/(?<fTemp>@(?<fName>DEFAULT_TEMPLATE_CONCATENATION))\(\s*'\s*(?<delimiter>\s*[[:ascii:]]*\s*)'\s*\)/");
+
+/**
+ * JavaScript files path define
+ */
+
+define("DEFAULT_JS_PATH", ROOT_DIR."settings/fr_scripts/src/");
+define("REQUEST_JS_PATH", "settings/fr_scripts/src/");
+
+/**
+ * Attach JavaScript library regex
+ */
+
+define("ATTACH_LIB_REGEX",'/#attach_library\(\"([a-z]\w+)\"\)\;/');

@@ -8,6 +8,8 @@
  */
 
 use app\core\application\database\FR_DatabaseWorker;
+use app\core\application\html_configurator\FR_HTMLConfigurator;
+use app\core\application\javascript_worker\FR_JavaScriptIntegrator;
 use app\core\application\template_parse_application\FR_TemplateParser;
 use app\core\application\warning_informer\FR_WarningInformer;
 
@@ -69,14 +71,26 @@ define("CORE_MODE", $CORE_MODE_DEVELOPMENT);
 $DEFAULT_TEMPLATE_PARSE_APPLICATION = new FR_TemplateParser();
 $DEFAULT_DATABASE_WORK_APPLICATION = new FR_DatabaseWorker();
 $DEFAULT_WARNING_INFORMER = new FR_WarningInformer();
+$DEFAULT_JAVASCRIPT_INTEGRATOR = new FR_JavaScriptIntegrator();
+$DEFAULT_HTML_CONSTRUCTOR = new FR_HTMLConfigurator();
 
 
 $this->fr_exportApplications([
     TEMPLATE_WORKER => $DEFAULT_TEMPLATE_PARSE_APPLICATION,
     DATABASE_WORKER => $DEFAULT_DATABASE_WORK_APPLICATION,
-    WARNING_INFORMER => $DEFAULT_WARNING_INFORMER
+    WARNING_INFORMER => $DEFAULT_WARNING_INFORMER,
+    JAVASCRIPT_WORKER => $DEFAULT_JAVASCRIPT_INTEGRATOR,
+    HTML_WORKER => $DEFAULT_HTML_CONSTRUCTOR
 ]);
 
 /**
  * JavaScript attachment section
+ *
+ * If you have some JavaScript for integration just put your .js file into /fr_scripts/src
+ * and register it using $DEFAULT_JAVASCRIPT_INTEGRATOR->registerScript("script_name.js", "machine_name")
+ * then just use it in the templates using @attach_script("machine_name")
+ *
+ * Machine and .js name should be unique
  */
+
+$DEFAULT_JAVASCRIPT_INTEGRATOR->registerScript('1.js',"hello");
