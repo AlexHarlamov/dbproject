@@ -5,7 +5,7 @@ $(document).ready(function(){
 
     $(".load-template-edit-form").on('click',function () {
         let request = new XMLHttpRequest();
-        let url = 'http://axiom.dev/GET/?ELEMENT_ID=16&TEMPLATE_ID=5';
+        let url = 'http://axiom.dev/GET/?ELEMENT_ID=16&TEMPLATE_ID=6';
         request.open('GET', url);
         request.onload = function () {
             $(".working-area").html(request.response);
