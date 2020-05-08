@@ -46,16 +46,16 @@ __________________________________________________
 @thead(tableName)
     = "<thead><tr> @keys(tableName) </tr></thead>"
 
-@keys(tableName) - генерирует нужное колучиство "<td>@key()</td>"
+@keys(tableName) - генерирует нужное количество "<td>@key()</td>"
     = DEFAULT_CONCATENATION_PATTERN
 
 @body(tableName,['argKey1' => 'argVal1' , ...])
     = "<tbody>@row(tableName,['argKey1' => 'argVal1 ', ...])</tbody>"
 
-@row(tableName,['argKey1' => 'argVal1' , ...]) - генерирует нужное колучиство "<tr>@cols()</tr>"
+@row(tableName,['argKey1' => 'argVal1' , ...]) - генерирует нужное количество "<tr>@cols()</tr>"
     = DEFAULT_CONCATENATION_PATTERN
 
-@cols(tableName) - генерирует нужное колучиство "<td>@col()</td>"
+@cols(tableName) - генерирует нужное количество "<td>@col()</td>"
     = DEFAULT_CONCATENATION_PATTERN
 
 @element(element_id,template_id)

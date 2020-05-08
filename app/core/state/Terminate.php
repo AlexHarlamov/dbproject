@@ -6,6 +6,7 @@ namespace app\core\state;
 
 use app\core\CoreState;
 use app\core\exception\UndefinedEnvVariableException;
+use app\core\util\App;
 use app\core\util\Env;
 
 class Terminate implements CoreState
@@ -29,7 +30,9 @@ class Terminate implements CoreState
     private function defaultOutputAction(){
 
         try {
-            echo Env::get("FR_OUTPUT_BUFFER");
+            App::call(JAVASCRIPT_WORKER,"processAttaching");
+            App::call(HTML_WORKER,"constructDocument");
+            echo Env::get("HTML_DOCUMENT");
         } catch (UndefinedEnvVariableException $e) {
         }
 
