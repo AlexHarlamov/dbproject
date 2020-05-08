@@ -37,11 +37,6 @@ class ParseTemplate implements CoreState
         $data = Env::get("VIEW_DATA");
         $html = recursionParseLoop($template,$data);
 
-            /*$html = App::call(TEMPLATE_WORKER, "simpleInjecting", [
-                "template" => Env::get("VIEW_TEMPLATE"),
-                "vars" => Env::get("VIEW_DATA")
-            ]);*/
-
         Env::set("FR_OUTPUT_BUFFER",$html);
 
 

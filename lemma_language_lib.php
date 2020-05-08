@@ -325,50 +325,55 @@ function recursionParseLoop($template,$data){
 
     while($pos !== false){
         $str = substr($str, $pos);
+        $matches = null;
 
         /*variable*/
-        preg_match(DEFAULT_VAR_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL);
-        if(!empty($matches) && isset($currentData[$matches[0]])){
-            $currentTemplate = variableParse($currentTemplate,$currentData);
-            $str = $currentTemplate;
-            $template['CURRENT_TEMPLATE'] = $currentTemplate;
-            $pos = strpos($str, '@');
-            continue;
-        }
+        if(1 == preg_match(DEFAULT_VAR_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL)){
+            if(!empty($matches) && isset($currentData[$matches[0]])){
+                $pos = strpos($str, $matches[0]);
+                $currentTemplate = variableParse($currentTemplate,$currentData);
+            }
 
         /*function f1*/
-        preg_match(DEFAULT_F1_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL);
-        if(!empty($matches)){
-            //TODO:realization
-        }
+        }elseif (1 == preg_match(DEFAULT_F1_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL)){
 
-        /*function concatenation*/
-        preg_match(DEFAULT_CONCATENATION_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL);
-        if(!empty($matches)){
-            //TODO:realization
-        }
+            if(!empty($matches)){
+                //TODO:realization
+            }
+
+         /*function concatenation*/
+        }elseif (1 == preg_match(DEFAULT_CONCATENATION_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL)){
+
+            if(!empty($matches)){
+                //TODO:realization
+            }
 
         /*function f2*/
-        preg_match(DEFAULT_F2_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL);
-        if(!empty($matches) && isset($matches['id1']) && isset($matches['id1']) ){
-            switch ($matches['fName']){
-                case 'element':
-                    $currentTemplate =  elementParse($template,$currentData[$matches[0]],$matches[0]);
-                    $str = $currentTemplate;
-                    $template['CURRENT_TEMPLATE'] = $currentTemplate;
-                    $pos = strpos($str, '@');
-                    break;
-                case 'class':
-                    $currentTemplate =  classParse($template,$currentData[$matches[0]],$matches[0]);
-                    $str = $currentTemplate;
-                    $template['CURRENT_TEMPLATE'] = $currentTemplate;
-                    $pos = strpos($str, '@');
-                    break;
-                default:
-                    //TODO:handle
+        }elseif(1 == preg_match(DEFAULT_F2_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL)){
+
+            if(!empty($matches) && isset($matches['id1']) && isset($matches['id1']) ){
+                $pos = strpos($str, $matches[0]);
+                switch ($matches['fName']){
+                    case 'element':
+                        $currentTemplate =  elementParse($template,$currentData[$matches[0]],$matches[0]);
+                        break;
+                    case 'class':
+                        $currentTemplate =  classParse($template,$currentData[$matches[0]],$matches[0]);
+                        break;
+                    default:
+                        //TODO:handle
+                }
             }
+
+        }else{
+            //чтоб при нахождении всяких ab@c не было цикла
+            $pos++;
         }
 
+        $str = $currentTemplate;
+        $str = substr($str, $pos);
+        $template['CURRENT_TEMPLATE'] = $currentTemplate;
+        $pos = strpos($str, '@');
     }
     return $currentTemplate;
 }
@@ -384,7 +389,7 @@ function variableParse($currentTemplate,$currentData){
     try {
         $t = App::call(TEMPLATE_WORKER, "simpleInjecting", [
             "template" => $currentTemplate,
-            "vars" => $currentData
+            "vars" => refactorArray($currentData)
         ]);
     }catch (UndefinedApplicationCallException $e) {
     } catch (UndefinedMethodCallException $e) {
@@ -420,6 +425,12 @@ function elementParse($parentTemplate,$currentData,$function){
     return $t;
 }
 
+/**
+ * @param $parentTemplate
+ * @param $currentData
+ * @param $function
+ * @return mixed|null
+ */
 function classParse($parentTemplate,$currentData,$function){
 
     $currentTemplate = $parentTemplate[$function];
@@ -439,4 +450,24 @@ function classParse($parentTemplate,$currentData,$function){
         //TODO:Handle
     }
     return $t;
+}
+
+
+/**
+ * @param $arr
+ * @return array
+ *
+ * Отделяем данные конкретного уровня от вложенных
+ */
+function refactorArray($arr){
+
+    $newArr = [];
+
+    foreach ($arr as $key => $val){
+        if(!is_array($val)){
+            $newArr[$key] = $val;
+        }
+    }
+
+    return $newArr;
 }
