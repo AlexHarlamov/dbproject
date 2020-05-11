@@ -1,5 +1,6 @@
 <?php
 
+use app\core\exception\DataBaseException;
 use app\core\exception\UndefinedApplicationCallException;
 use app\core\exception\UndefinedMethodCallException;
 use app\core\exception\UndefinedTemplateException;
@@ -26,7 +27,6 @@ function getTemplate($templateId){
             ]
         ]);
         if (empty($arr) && !isset(($arr[0])["BODY"])) {
-            //TODO:Handle
             throw  new UndefinedTemplateException("template with id $templateId does not exist");
         }else{
             return ($arr[0])["BODY"];
@@ -62,8 +62,7 @@ function getClassIdByElement($elementId){
         ]);
 
         if(empty($arr) && !isset(($arr[0])["OWNER_CLASS_ID"])){
-            //TODO:handle
-            return null;
+            throw  new DataBaseException("");
         }
         else{
             return ($arr[0])["OWNER_CLASS_ID"];
@@ -99,8 +98,7 @@ function getClassTable($classId){
             ]
         ]);
         if(empty($arr) && !isset(($arr[0])["I_NAME"])){
-            //TODO:handle
-            return null;
+            throw  new DataBaseException("");
         }
         else{
             return "class_".($arr[0])["I_NAME"];
@@ -208,8 +206,7 @@ function elementPrepare($key,$elementId,$templateId){
         if(!empty($arr)){
             $currentData = $arr[0];
         }else{
-            //TODO:handle
-            return null;
+            throw  new DataBaseException("");
         }
     }catch (UndefinedApplicationCallException $e) {
     } catch (UndefinedMethodCallException $e) {
@@ -322,8 +319,9 @@ function recursionParseLoop($template,$data){
 
     $str = $currentTemplate;
     $pos = strpos($str, '@');
+    $allPos = 0;
 
-    while($pos !== false){
+    while($allPos<strlen($currentTemplate) && $pos !== false){
         $str = substr($str, $pos);
         $matches = null;
 
@@ -370,8 +368,9 @@ function recursionParseLoop($template,$data){
             $pos++;
         }
 
+        $allPos +=$pos;
         $str = $currentTemplate;
-        $str = substr($str, $pos);
+        $str = substr($str, $allPos);
         $template['CURRENT_TEMPLATE'] = $currentTemplate;
         $pos = strpos($str, '@');
     }

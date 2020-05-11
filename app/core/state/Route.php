@@ -52,6 +52,9 @@ class Route implements CoreState
                 case "GET":
                     $this->checkAvailableGetScripts();
                     break;
+                case "POST":
+                    $this->checkAvailablePostScripts();
+                    break;
                 default :
                throw new Exception();
             }
@@ -73,19 +76,66 @@ class Route implements CoreState
 
     private function checkAvailableGetScripts(){
 
-        if(isset($_GET["ELEMENT_ID"])){
-            Env::set("ELEMENT_ID",$_GET["ELEMENT_ID"]);
-            if(isset($_GET["TEMPLATE_ID"])){
-                Env::set("TEMPLATE_ID",$_GET["TEMPLATE_ID"]);
+        if(Env::contains("QWERTY")){
+
+            $qwerty = Env::get("QWERTY");
+
+            if(isset($qwerty["WRAPPER"]) && ($qwerty["WRAPPER"] == 0 || $qwerty["WRAPPER"] == 1) ){
+                Env::set("WRAPPER",$qwerty["WRAPPER"]);
+            }else{
+                Env::set("WRAPPER",1);
             }
-        }elseif(isset($_GET["CLASS_ID"])){
-            Env::set("CLASS_ID",$_GET["CLASS_ID"]);
-            if(isset($_GET["TEMPLATE_ID"])){
-                Env::set("TEMPLATE_ID",$_GET["TEMPLATE_ID"]);
+
+            if(isset($qwerty["ELEMENT_ID"])){
+                Env::set("ELEMENT_ID",$qwerty["ELEMENT_ID"]);
+                if(isset($qwerty["TEMPLATE_ID"])){
+                    Env::set("TEMPLATE_ID",$qwerty["TEMPLATE_ID"]);
+                }
+            }elseif(isset($qwerty["CLASS_ID"])){
+                Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
+                if(isset($qwerty["TEMPLATE_ID"])){
+                    Env::set("TEMPLATE_ID",$qwerty["TEMPLATE_ID"]);
+                }
+            }else{
+                throw new Exception();
             }
-            throw new Exception();
-        }else{
-            throw new Exception();
+
+        }
+
+    }
+
+    private function checkAvailablePostScripts(){
+
+        if(Env::contains("QWERTY")){
+
+            $qwerty = Env::get("QWERTY");
+
+            if(isset($qwerty["WRAPPER"]) && ($qwerty["WRAPPER"] == 0 || $qwerty["WRAPPER"] == 1) ){
+                Env::set("WRAPPER",$qwerty["WRAPPER"]);
+            }else{
+                Env::set("WRAPPER",1);
+            }
+
+            if(isset($qwerty["ACTION"])){
+
+                switch ($qwerty["ACTION"]){
+                    case "0":
+                        $d = null;
+                        $putdata = fopen("php://input", "r");
+                        while ($data = fread($putdata, 1024)){
+                            $d =$d.$data;
+                        }
+                        parse_str($d,$formData);
+                        Env::set("FR_FORM_DATA_TO_SAVE",$formData);
+                        break;
+                    default:
+                        throw new Exception();
+                }
+
+            }else{
+                throw new Exception();
+            }
+
         }
     }
 
@@ -94,6 +144,13 @@ class Route implements CoreState
         $url = $_SERVER['REQUEST_URI'];
         $path= parse_url($url, PHP_URL_PATH);
         $array = explode("/", trim($path, "/"));
+
+        $pos = strpos($url , '?');
+        if($pos !== false){
+            $str = substr($url , $pos+1);
+            parse_str($str,$qwert);
+            Env::set("QWERTY",$qwert);
+        }
 
         Env::set("FR_URL",$url);
         Env::set("FR_PATH",$path);

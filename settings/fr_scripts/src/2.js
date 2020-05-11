@@ -1,12 +1,13 @@
-console.log("Hello world0");
+console.log("Hello world2");
 $(document).ready(function(){
 
-    console.log("Hello world1");
+    console.log("Hello world3");
 
-    $(".load-template-edit-form").on('click',function () {
+    $(".load-EDITOR_FULL_CLASS").on('click',function () {
         let request = new XMLHttpRequest();
-        let url = 'http://www.lemma/GET/?ELEMENT_ID=16&TEMPLATE_ID=6&WRAPPER=0';
+        let url = 'http://www.lemma/GET/?ELEMENT_ID=16&TEMPLATE_ID=16&WRAPPER=0';
         request.open('GET', url);
+
         request.onload = function () {
             $(".working-area").html(request.response);
             $(".accept-preview").on('click', function () {

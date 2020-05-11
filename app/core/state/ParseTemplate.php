@@ -26,6 +26,10 @@ class ParseTemplate implements CoreState
 
     function fr_defaultAction(): CoreState
     {
+        $template = Env::get("SITE_TEMPLATE");
+        $data = Env::get("SITE_DATA");
+        $site = recursionParseLoop($template,$data); //Can be converted into application call (return value available)
+        Env::set("FR_OUTPUT_SITE",$site);
 
         $template = Env::get("VIEW_TEMPLATE");
         $data = Env::get("VIEW_DATA");

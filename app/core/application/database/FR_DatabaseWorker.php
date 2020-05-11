@@ -89,6 +89,17 @@ class FR_DatabaseWorker implements Application
     public function insert(array $params)
     {
 
+        /*
+        $conn = $this->db;
+
+        $conn->exec('CREATE TABLE testIncrement ' .
+            '(id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50))');
+        $sth = $conn->prepare('INSERT INTO testIncrement (name) VALUES (:name)');
+        $sth->execute([':name' => 'foo']);
+        $id = $conn->lastInsertId();
+        $conn->exec('DROP TABLE testIncrement');
+        */
+
         $this->conditions = NULL;
 
         if(!empty($params["into"])){
@@ -116,9 +127,12 @@ class FR_DatabaseWorker implements Application
 
         $this->request = substr($this->request, 0, -1) . ") values (";
 
+        $condForExecute = null;
+
         if(!empty($fields)){
             foreach ($fields as $names) {
                 $this->request = $this->request . ":" . $names . ",";
+                $condForExecute[':'.$names] = $conditions[$names];
             }
         }
 
@@ -126,7 +140,8 @@ class FR_DatabaseWorker implements Application
 
         try {
             $this->state = $this->db->prepare($this->request);
-            $this->state->execute($this->conditions);
+            $this->state->execute($condForExecute);
+            $id = $this->db->lastInsertId();
             $this->result = $this->state->fetchAll();
         } catch (PDOException $exception) {
             throw $exception;
@@ -135,7 +150,12 @@ class FR_DatabaseWorker implements Application
         Env::set('LastRequest', $this->request);
         Env::set('LastSelect',$this->result);
 
-        return $this->result;
+
+
+        return [
+            "result"=> $this->result,
+            "id" => $id
+        ];
     }
 
     /**

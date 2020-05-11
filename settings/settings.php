@@ -94,3 +94,4 @@ $this->fr_exportApplications([
  */
 
 $DEFAULT_JAVASCRIPT_INTEGRATOR->registerScript('1.js',"hello");
+$DEFAULT_JAVASCRIPT_INTEGRATOR->registerScript('2.js',"fullClassEditor");

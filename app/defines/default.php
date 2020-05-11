@@ -95,3 +95,9 @@ define("REQUEST_JS_PATH", "settings/fr_scripts/src/");
  */
 
 define("ATTACH_LIB_REGEX",'/#attach_library\(\"([a-z]\w+)\"\)\;/');
+
+/**
+ * Структура сайта
+ */
+define("SITE_STRUCTURE_ELEMENT",18);
+define("SITE_STRUCTURE_TEMPLATE",9);
