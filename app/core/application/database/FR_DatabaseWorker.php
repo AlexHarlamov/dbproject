@@ -89,17 +89,6 @@ class FR_DatabaseWorker implements Application
     public function insert(array $params)
     {
 
-        /*
-        $conn = $this->db;
-
-        $conn->exec('CREATE TABLE testIncrement ' .
-            '(id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50))');
-        $sth = $conn->prepare('INSERT INTO testIncrement (name) VALUES (:name)');
-        $sth->execute([':name' => 'foo']);
-        $id = $conn->lastInsertId();
-        $conn->exec('DROP TABLE testIncrement');
-        */
-
         $this->conditions = NULL;
 
         if(!empty($params["into"])){
@@ -129,7 +118,7 @@ class FR_DatabaseWorker implements Application
 
         $condForExecute = null;
 
-        if(!empty($fields)){
+        if(!empty($fields) && !empty($conditions)){
             foreach ($fields as $names) {
                 $this->request = $this->request . ":" . $names . ",";
                 $condForExecute[':'.$names] = $conditions[$names];
@@ -272,6 +261,19 @@ class FR_DatabaseWorker implements Application
         }
 
         return $new_mass;
+    }
+
+    public function describeTable($tableToDescribe){
+
+        try{
+            $statement = $this->db->query('DESCRIBE ' . $tableToDescribe);
+            $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $exception) {
+        throw $exception;
+        }
+
+        Env::set("TableDescribe",$result);
+        return $result;
     }
 
 }

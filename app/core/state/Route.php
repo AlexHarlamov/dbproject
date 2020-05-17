@@ -48,13 +48,24 @@ class Route implements CoreState
         $this->prepareEnvVariables();
 
         try {
-            switch (Env::get("FR_ACTION")){
-                case "GET":
-                    $this->checkAvailableGetScripts();
+            switch (Env::get("FR_ACTION")[0]){
+                case "":
+                    $this->checkAvailableHelloScripts();
                     break;
-                case "POST":
-                    $this->checkAvailablePostScripts();
+                case "nullInterface":
+                    switch (Env::get("FR_ACTION")[1]){
+                        case "":
+                            $this->checkAvailableNullInterfaceScripts();
+                            break;
+                        case "GET":
+                            $this->checkAvailableGetScripts();
+                            break;
+                        case "POST":
+                            $this->checkAvailablePostScripts();
+                            break;
+                    }
                     break;
+                case "userInterface":
                 default :
                throw new Exception();
             }
@@ -73,69 +84,105 @@ class Route implements CoreState
         // TODO: Implement fr_executeHookCallbacks() method.
     }
 
+    private function checkAvailableHelloScripts(){
+        $this->setWrapper();
+        Env::set("SSE",SITE_STRUCTURE_ELEMENT);
+        Env::set("SST",SITE_HELLO_STRUCTURE_TEMPLATE);
+    }
+
+    private function checkAvailableNullInterfaceScripts(){
+        $this->setWrapper();
+        Env::set("SSE",SITE_STRUCTURE_ELEMENT);
+        Env::set("SST",SITE_NULL_STRUCTURE_TEMPLATE);
+    }
 
     private function checkAvailableGetScripts(){
 
-        if(Env::contains("QWERTY")){
+        Env::set("SSE",SITE_STRUCTURE_ELEMENT);
+        Env::set("SST",SITE_NULL_STRUCTURE_TEMPLATE);
+        $this->setWrapper();
+
+        if(Env::contains("QWERTY") && isset(Env::get("QWERTY")["OBJ"])){
 
             $qwerty = Env::get("QWERTY");
 
-            if(isset($qwerty["WRAPPER"]) && ($qwerty["WRAPPER"] == 0 || $qwerty["WRAPPER"] == 1) ){
-                Env::set("WRAPPER",$qwerty["WRAPPER"]);
-            }else{
-                Env::set("WRAPPER",1);
+            switch ($qwerty["OBJ"]){
+                case GET_CLASSES:
+                        break;
+                case GET_CLASS:
+                case GET_ELEMENTS:
+                    if(isset($qwerty["CLASS_ID"])){
+                        Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
+                    }else{
+                        throw new Exception();
+                    }
+                    break;
+                case GET_ELEMENT:
+                    if(isset($qwerty["ELEMENT_ID"])){
+                        Env::set("ELEMENT_ID",$qwerty["ELEMENT_ID"]);
+                        if(isset($qwerty["TEMPLATE_ID"])){
+                            Env::set("TEMPLATE_ID",$qwerty["TEMPLATE_ID"]);
+                        }
+                    }else{
+                        throw new Exception();
+                    }
+                    break;
+                case GET_CHANGE_CLASS:
+                    if(isset($qwerty["CLASS_ID"])){
+                        Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
+                    }else{
+                        throw new Exception();
+                    }
+                    break;
+                case GET_CHANGE_ELEMENT:
+                    break;
+                default:
+                    throw new Exception();
             }
 
-            if(isset($qwerty["ELEMENT_ID"])){
-                Env::set("ELEMENT_ID",$qwerty["ELEMENT_ID"]);
-                if(isset($qwerty["TEMPLATE_ID"])){
-                    Env::set("TEMPLATE_ID",$qwerty["TEMPLATE_ID"]);
-                }
-            }elseif(isset($qwerty["CLASS_ID"])){
-                Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
-                if(isset($qwerty["TEMPLATE_ID"])){
-                    Env::set("TEMPLATE_ID",$qwerty["TEMPLATE_ID"]);
-                }
-            }else{
-                throw new Exception();
-            }
+            Env::set("OBJ",$qwerty["OBJ"]);
 
+        }else{
+            throw new Exception();
         }
 
     }
 
     private function checkAvailablePostScripts(){
 
-        if(Env::contains("QWERTY")){
+        Env::set("SSE",SITE_STRUCTURE_ELEMENT);
+        Env::set("SST",SITE_NULL_STRUCTURE_TEMPLATE);
+        $this->setWrapper();
+
+        if(Env::contains("QWERTY") && isset(Env::get("QWERTY")["OBJ"])){
 
             $qwerty = Env::get("QWERTY");
 
-            if(isset($qwerty["WRAPPER"]) && ($qwerty["WRAPPER"] == 0 || $qwerty["WRAPPER"] == 1) ){
-                Env::set("WRAPPER",$qwerty["WRAPPER"]);
-            }else{
-                Env::set("WRAPPER",1);
+            switch ($qwerty["OBJ"]){
+                case POST_CHANGE_CLASS:
+                    $d = null;
+                    $putdata = fopen("php://input", "r");
+                    while ($data = fread($putdata, 1024)){
+                        $d =$d.$data;
+                    }
+                    parse_str($d,$formData);
+                    Env::set("FR_FORM_DATA_TO_SAVE",$formData);
+                    break;
+                case POST_CHANGE_ELEMENT:
+                    break;
+                case POST_CHANGE_RELATION:
+                    break;
+                case POST_CHANGE_LINK:
+                    break;
+                default:
+                    throw new Exception();
+
             }
 
-            if(isset($qwerty["ACTION"])){
+            Env::set("OBJ",$qwerty["OBJ"]);
 
-                switch ($qwerty["ACTION"]){
-                    case "0":
-                        $d = null;
-                        $putdata = fopen("php://input", "r");
-                        while ($data = fread($putdata, 1024)){
-                            $d =$d.$data;
-                        }
-                        parse_str($d,$formData);
-                        Env::set("FR_FORM_DATA_TO_SAVE",$formData);
-                        break;
-                    default:
-                        throw new Exception();
-                }
-
-            }else{
-                throw new Exception();
-            }
-
+        }else{
+            throw new Exception();
         }
     }
 
@@ -154,8 +201,16 @@ class Route implements CoreState
 
         Env::set("FR_URL",$url);
         Env::set("FR_PATH",$path);
-        Env::set("FR_ACTION",$array[0]);
+        Env::set("FR_ACTION",$array);
 
+    }
+
+    private function setWrapper(){
+        if(isset($qwerty["WRAPPER"]) && ($qwerty["WRAPPER"] == 0 || $qwerty["WRAPPER"] == 1) ){
+            Env::set("WRAPPER",$qwerty["WRAPPER"]);
+        }else{
+            Env::set("WRAPPER",1);
+        }
     }
 
 

@@ -4,12 +4,8 @@
 namespace app\core\state;
 
 
-use app\core\application\database\FR_DatabaseWorker;
 use app\core\CoreState;
-use app\core\exception\UndefinedApplicationCallException;
-use app\core\exception\UndefinedEnvVariableException;
 use app\core\exception\UndefinedMethodCallException;
-use app\core\exception\UndefinedTemplateException;
 use app\core\util\App;
 use app\core\util\Env;
 use Exception;
@@ -37,38 +33,27 @@ class PrepareData implements CoreState
     function fr_defaultAction(): CoreState
     {
         //подготовка структуры сайта
-        $this->prepareSiteStructure(SITE_STRUCTURE_ELEMENT,SITE_STRUCTURE_TEMPLATE);
+        $this->prepareSiteStructure(Env::get("SSE"),Env::get("SST"));
 
         try {
-            switch (Env::get("FR_ACTION")){
-                case "GET":
-                    if(Env::contains("ELEMENT_ID") ){
-                        if(Env::contains("TEMPLATE_ID")){
-                            $this->prepareElementData(Env::get("ELEMENT_ID"),Env::get("TEMPLATE_ID"));
-                        }
-                        else{
-                            //TODO:сделать дефолтный шаблон?
-                            $this->prepareElementData(Env::get("ELEMENT_ID"),DEFAULT_ELEMENT_TEMPLATE_ID);
-                        }
-                    }
-                    elseif(Env::contains("CLASS_ID") ){
-
-                        if(Env::contains("TEMPLATE_ID")){
-                            //TODO:что ты такое?
-                            $this->prepareClassData(Env::get("CLASS_ID"),Env::get("TEMPLATE_ID"));
-                        }
-                        else{
-                            //TODO:сделать дефолтный шаблон
-                            $this->prepareClassData(Env::get("CLASS_ID"),DEFAULT_CLASS_TEMPLATE_ID);
-                        }
+            switch (Env::get("FR_ACTION")[0]){
+                case "":
+                    $this->prepareElementData(HELLO_ELEMENT,HELLO_TEMPLATE);
+                    break;
+                case "nullInterface":
+                    switch (Env::get("FR_ACTION")[1]){
+                        case "":
+                            $this->prepareElementData(HELLO_ELEMENT,EMPTY_TEMPLATE);
+                            break;
+                        case "GET":
+                            $this->getHandler();
+                            break;
+                        case "POST":
+                            $this->postHandler();
+                            break;
                     }
                     break;
-                case "POST":
-                    if(Env::contains("FR_FORM_DATA_TO_SAVE")){
-                        $message = $this->saveNewClass();
-                        $this->preparePostAnswer($message);
-                    }
-                    break;
+                case "userInterface":
                 default :
                     throw new Exception();
             }
@@ -80,12 +65,70 @@ class PrepareData implements CoreState
     }
 
 
-    /**
-     * @param $classId
-     * @param $templateId
-     *
-     * Prepare data for Class
-     */
+private function getHandler(){
+
+        if(Env::contains("OBJ")){
+
+            switch (Env::get("OBJ")){
+                case GET_CLASSES:
+                    $this->prepareGetClasses();
+                    break;
+                case GET_CLASS:
+                    $this->prepareGetClass();
+                    break;
+                case GET_ELEMENTS:
+                    $this->prepareGetElements();
+                    break;
+                case GET_ELEMENT:
+                    if(Env::contains("ELEMENT_ID") ){
+                        if(Env::contains("TEMPLATE_ID")){
+                            $this->prepareElementData(Env::get("ELEMENT_ID"),Env::get("TEMPLATE_ID"));
+                        }
+                        else{
+                            //TODO:сделать дефолтный шаблон?
+                            $this->prepareElementData(Env::get("ELEMENT_ID"),DEFAULT_ELEMENT_TEMPLATE_ID);
+                        }
+                    }
+                    break;
+                case GET_CHANGE_CLASS:
+                    $this->prepareClassToChange();
+                    break;
+                case GET_CHANGE_ELEMENT:
+                    break;
+                default:
+                    throw new Exception();
+            }
+        }
+        else{
+            throw new Exception();
+        }
+}
+
+private function postHandler(){
+
+    if(Env::contains("OBJ")){
+
+        switch (Env::get("OBJ")){
+            case POST_CHANGE_CLASS:
+                if(Env::contains("FR_FORM_DATA_TO_SAVE")){
+                    $message = $this->saveNewClass();
+                    $this->preparePostAnswer($message);
+                }
+                break;
+            case POST_CHANGE_ELEMENT:
+                break;
+            case POST_CHANGE_RELATION:
+                break;
+            case POST_CHANGE_LINK:
+                break;
+            default:
+                throw new Exception();
+        }
+    }else{
+        throw new Exception();
+    }
+
+}
 
     private function prepareClassData($classId,$templateId){
 
@@ -100,13 +143,6 @@ class PrepareData implements CoreState
         Env::set("VIEW_DATA",$dataNode);
     }
 
-    /**
-     * @param $elementId
-     * @param $templateId
-     *
-     * Prepare data for Element
-     *
-     */
     private function prepareElementData($elementId,$templateId){
 
         $function = '@element('.$elementId.','.$templateId.')';
@@ -120,12 +156,6 @@ class PrepareData implements CoreState
         Env::set("VIEW_DATA",$dataNode);
     }
 
-    /**
-     * @param $elementId
-     * @param $templateId
-     *
-     *
-     */
     private function prepareSiteStructure($elementId,$templateId){
 
         $function = '@element('.$elementId.','.$templateId.')';
@@ -140,6 +170,10 @@ class PrepareData implements CoreState
 
     }
 
+    private function prepareClassToChange(){
+        $this->prepareElementData(DEFAULT_CLASS_CHANGE_ELEMENT_ID,DEFAULT_CLASS_CHANGE_TEMPLATE_ID);
+    }
+
     private function saveNewClass(){
         $message = null;
 
@@ -147,7 +181,7 @@ class PrepareData implements CoreState
 
         $classID = null;
 
-        if(isset($data["ClassName"])){
+        if(isset($data["ClassName"]) && $data["ClassName"]!=""){
 
             $fields = [
                 "NAME",
@@ -167,14 +201,14 @@ class PrepareData implements CoreState
                     "conditions" => $conditions
                 ]);
             }catch (PDOException $e) {
-                $message = $e->getMessage();
+                return $e->getMessage();
             } catch (UndefinedMethodCallException $e) {
             } catch (Exception $e) {
                 //TODO:error
             }
 
             if(empty($arr)){
-                //TODO:ERROR
+                return "no data";
             }
             else{
                 $classID = $arr["id"];
@@ -220,14 +254,14 @@ class PrepareData implements CoreState
                             "conditions" => $conditions
                         ]);
                     }catch (PDOException $e) {
-                        $message = $e->getMessage();
+                        return $e->getMessage();
                     } catch (UndefinedMethodCallException $e) {
                     } catch (Exception $e) {
-                        //TODO:error
+                        return $e->getMessage();
                     }
 
                     if(empty($arr)){
-                        //TODO:ERROR
+                        return "no data";
                     }
 
                 }else{
@@ -266,14 +300,14 @@ class PrepareData implements CoreState
                         "conditions" => $conditions
                     ]);
                 }catch (PDOException $e) {
-                    $message = $e->getMessage();
+                    return $e->getMessage();
                 } catch (UndefinedMethodCallException $e) {
                 } catch (Exception $e) {
                     //TODO:error
                 }
 
                 if(empty($arr)){
-                    //TODO:ERROR
+                    return "no data";
                 }
 
             }else{
@@ -302,5 +336,49 @@ class PrepareData implements CoreState
         Env::set("VIEW_TEMPLATE",[ 'CURRENT_TEMPLATE'=>$message]);
         Env::set("VIEW_DATA",[]);
         //Env::set("WRAPPER",0);
+    }
+
+    private function prepareGetClass(){
+
+        $classID = Env::get("CLASS_ID");
+
+        $keyR = '@classStructure('.$classID.')';
+        $result = classStructPrepare($classID,$keyR);
+
+        $templateNode['CURRENT_TEMPLATE'] = $keyR;
+        $templateNode[$result['tempK']] = $result['tempV'];
+        $dataNode[$result['dataK']] = $result['dataV'];
+
+        Env::set("VIEW_TEMPLATE",$templateNode);
+        Env::set("VIEW_DATA",$dataNode);
+    }
+
+    private function prepareGetClasses()
+    {
+        $keyR = '@table(lemma_classes,[])';
+
+        $result = tablePrepare("lemma_classes","[]",$keyR);
+
+        $templateNode['CURRENT_TEMPLATE'] = $keyR;
+        $templateNode[$result['tempK']] = $result['tempV'];
+        $dataNode[$result['dataK']] = $result['dataV'];
+
+        Env::set("VIEW_TEMPLATE",$templateNode);
+        Env::set("VIEW_DATA",$dataNode);
+    }
+
+    private function prepareGetElements()
+    {
+        $tableName = getClassTable(Env::get("CLASS_ID"));
+        $keyR = "@table($tableName,[])";
+
+        $result = tablePrepare($tableName,"[]",$keyR);
+
+        $templateNode['CURRENT_TEMPLATE'] = $keyR;
+        $templateNode[$result['tempK']] = $result['tempV'];
+        $dataNode[$result['dataK']] = $result['dataV'];
+
+        Env::set("VIEW_TEMPLATE",$templateNode);
+        Env::set("VIEW_DATA",$dataNode);
     }
 }

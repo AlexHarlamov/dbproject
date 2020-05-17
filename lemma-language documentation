@@ -37,22 +37,22 @@ __________________________________________________
 Метки-функции:
     = шаблоны, в которые они преобразуются ( - при этом совершаются какие-то манипуляции с данными )*
 
-@classStructure( ,['I_ID' => 'ID'])
-    = "@table(lemma_classes,[2 => ID]) <br/> @table(lemma_attributes,[2 => OWNER_CLASS_ID])"
+@classStructure(classID)
+    = "@table(lemma_classes,[ID => classID]) <br/> @table(lemma_attributes,[OWNER_CLASS_ID => classID])"
 
 @table(tableName,['argKey1' => 'argVal1' , ...])
-    = "<table> @thead(tableName) @body(tableName,[argKey1 => argVal1 , ...]) </table>"
+    = "<table> @thread(tableName) @body(tableName,[argKey1 => argVal1 , ...]) </table>"
 
-@thead(tableName)
-    = "<thead><tr> @keys(tableName) </tr></thead>"
+@thread(tableName)
+    = "<thead><tr> @KEYS(tableName) </tr></thead>"
 
-@keys(tableName) - генерирует нужное количество "<td>@key()</td>"
+@keys(tableName) - генерирует нужное количество "<td>@NAME()</td>"
     = DEFAULT_CONCATENATION_PATTERN
 
 @body(tableName,['argKey1' => 'argVal1' , ...])
     = "<tbody>@row(tableName,['argKey1' => 'argVal1 ', ...])</tbody>"
 
-@row(tableName,['argKey1' => 'argVal1' , ...]) - генерирует нужное количество "<tr>@cols()</tr>"
+@row(tableName,['argKey1' => 'argVal1' , ...]) - генерирует нужное количество "<tr>@COLS(tableName)</tr>"
     = DEFAULT_CONCATENATION_PATTERN
 
 @cols(tableName) - генерирует нужное количество "<td>@col()</td>"

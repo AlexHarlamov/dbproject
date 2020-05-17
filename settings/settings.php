@@ -95,3 +95,6 @@ $this->fr_exportApplications([
 
 $DEFAULT_JAVASCRIPT_INTEGRATOR->registerScript('1.js',"hello");
 $DEFAULT_JAVASCRIPT_INTEGRATOR->registerScript('2.js',"fullClassEditor");
+$DEFAULT_JAVASCRIPT_INTEGRATOR->registerScript('3.js',"getObj3");
+$DEFAULT_JAVASCRIPT_INTEGRATOR->registerScript('4.js',"getObj1");
+$DEFAULT_JAVASCRIPT_INTEGRATOR->registerScript('5.js',"getObj2");
