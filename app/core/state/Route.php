@@ -128,10 +128,10 @@ class Route implements CoreState
                     }
                     break;
                 case GET_CHANGE_CLASS:
-                    if(isset($qwerty["CLASS_ID"])){
+                    if(isset($qwerty["CLASS_ID"])){//это еще не работает
                         Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
                     }else{
-                        throw new Exception();
+                        //создаем новый класс
                     }
                     break;
                 case GET_CHANGE_ELEMENT:
