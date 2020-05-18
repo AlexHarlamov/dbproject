@@ -36,6 +36,117 @@ class FR_DatabaseWorker implements Application
         $this->db = new PDO(DB_DSN, DB_USERNAME, DB_PASSWORD, $opt);
     }
 
+    public function createTable(array $params){
+
+        $this->conditions = NULL;
+
+        if(!empty($params["table_name"])){
+            $table_name = $params["table_name"];
+        }else{
+            throw new PDOException("CREATE TABLE table_name property is not defined");
+        }
+        if(!empty($params["fields"])){
+            $fields = $params["fields"];
+            if(!empty($params["types"])){
+                $types = $params["types"];
+                $field_data_set = $this->wrapMassViaNames($fields,$types);
+            }
+        }
+
+        $this->request = "";
+
+        $this->request = $this->request . "create table " . $table_name ;
+
+        $fields_row = "";
+        if(!empty($field_data_set)){
+            foreach ($field_data_set as $field => $type){
+                $fields_row = $fields_row . "$field $type ,";
+            }
+            $fields_row = substr($fields_row, 0, -1);
+        }
+
+        $this->request = $this->request . "($fields_row)";
+
+        try {
+            $result = $this->db->query($this->request);
+            Env::set('LastRequest', $this->request);
+            Env::set('LastSelect',$this->result);
+
+            return $result;
+        } catch (PDOException $exception) {
+            throw $exception;
+        }
+    }
+
+    /**
+     * @param array $params
+     * @return array
+     * INSERT type request constructor
+     *
+     * INSERT INTO "into" (field_name0, ...) VALUES (value0, ...)
+     *
+     */
+    public function insert(array $params)
+    {
+
+        $this->conditions = NULL;
+
+        if(!empty($params["into"])){
+            $into = $params["into"];
+        }else{
+            throw new PDOException("INTO table_name property is not defined");
+        }
+        if(!empty($params["fields"])){
+            $fields = $params["fields"];
+            if(!empty($params["conditions"])){
+                $conditions = $params["conditions"];
+                $this->conditions = $this->wrapMassViaNames($fields, $conditions);
+            }
+        }
+
+        $this->request = "";
+
+        $this->request = $this->request . "insert into " . $into . " (";
+
+        if(!empty($fields)){
+            foreach ($fields as $names) {
+                $this->request = $this->request . $names . ",";
+            }
+        }
+
+        $this->request = substr($this->request, 0, -1) . ") values (";
+
+        $condForExecute = null;
+
+        if(!empty($fields) && !empty($conditions)){
+            foreach ($fields as $names) {
+                $this->request = $this->request . ":" . $names . ",";
+                $condForExecute[':'.$names] = $conditions[$names];
+            }
+        }
+
+        $this->request = substr($this->request, 0, -1) . ")";
+
+        try {
+            $this->state = $this->db->prepare($this->request);
+            $this->state->execute($condForExecute);
+            $id = $this->db->lastInsertId();
+            $this->result = $this->state->fetchAll();
+        } catch (PDOException $exception) {
+            throw $exception;
+        }
+
+        Env::set('LastRequest', $this->request);
+        Env::set('LastSelect',$this->result);
+
+
+
+        return [
+            "result"=> $this->result,
+            "id" => $id
+        ];
+    }
+
     /**
      * @param array $params
      * @return array
@@ -117,6 +228,7 @@ class FR_DatabaseWorker implements Application
             throw $exception;
         }
 
+        Env::set('LastRequest', $this->request);
         Env::set('LastSelect',$this->result);
 
         return $this->result;
@@ -149,6 +261,19 @@ class FR_DatabaseWorker implements Application
         }
 
         return $new_mass;
+    }
+
+    public function describeTable($tableToDescribe){
+
+        try{
+            $statement = $this->db->query('DESCRIBE ' . $tableToDescribe);
+            $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $exception) {
+        throw $exception;
+        }
+
+        Env::set("TableDescribe",$result);
+        return $result;
     }
 
 }

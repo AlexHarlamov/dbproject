@@ -48,10 +48,24 @@ class Route implements CoreState
         $this->prepareEnvVariables();
 
         try {
-            switch (Env::get("FR_ACTION")){
-                case "GET":
-                    $this->checkAvailableGetScripts();
+            switch (Env::get("FR_ACTION")[0]){
+                case "":
+                    $this->checkAvailableHelloScripts();
                     break;
+                case "nullInterface":
+                    switch (Env::get("FR_ACTION")[1]){
+                        case "":
+                            $this->checkAvailableNullInterfaceScripts();
+                            break;
+                        case "GET":
+                            $this->checkAvailableGetScripts();
+                            break;
+                        case "POST":
+                            $this->checkAvailablePostScripts();
+                            break;
+                    }
+                    break;
+                case "userInterface":
                 default :
                throw new Exception();
             }
@@ -70,20 +84,103 @@ class Route implements CoreState
         // TODO: Implement fr_executeHookCallbacks() method.
     }
 
+    private function checkAvailableHelloScripts(){
+        $this->setWrapper();
+        Env::set("SSE",SITE_STRUCTURE_ELEMENT);
+        Env::set("SST",SITE_HELLO_STRUCTURE_TEMPLATE);
+    }
+
+    private function checkAvailableNullInterfaceScripts(){
+        $this->setWrapper();
+        Env::set("SSE",SITE_STRUCTURE_ELEMENT);
+        Env::set("SST",SITE_NULL_STRUCTURE_TEMPLATE);
+    }
 
     private function checkAvailableGetScripts(){
 
-        if(isset($_GET["ELEMENT_ID"])){
-            Env::set("ELEMENT_ID",$_GET["ELEMENT_ID"]);
-            if(isset($_GET["TEMPLATE_ID"])){
-                Env::set("TEMPLATE_ID",$_GET["TEMPLATE_ID"]);
+        Env::set("SSE",SITE_STRUCTURE_ELEMENT);
+        Env::set("SST",SITE_NULL_STRUCTURE_TEMPLATE);
+        $this->setWrapper();
+
+        if(Env::contains("QWERTY") && isset(Env::get("QWERTY")["OBJ"])){
+
+            $qwerty = Env::get("QWERTY");
+
+            switch ($qwerty["OBJ"]){
+                case GET_CLASSES:
+                        break;
+                case GET_CLASS:
+                case GET_ELEMENTS:
+                    if(isset($qwerty["CLASS_ID"])){
+                        Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
+                    }else{
+                        throw new Exception();
+                    }
+                    break;
+                case GET_ELEMENT:
+                    if(isset($qwerty["ELEMENT_ID"])){
+                        Env::set("ELEMENT_ID",$qwerty["ELEMENT_ID"]);
+                        if(isset($qwerty["TEMPLATE_ID"])){
+                            Env::set("TEMPLATE_ID",$qwerty["TEMPLATE_ID"]);
+                        }
+                    }else{
+                        throw new Exception();
+                    }
+                    break;
+                case GET_CHANGE_CLASS:
+                    if(isset($qwerty["CLASS_ID"])){//это еще не работает
+                        Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
+                    }else{
+                        //создаем новый класс
+                    }
+                    break;
+                case GET_CHANGE_ELEMENT:
+                    break;
+                default:
+                    throw new Exception();
             }
-        }elseif(isset($_GET["CLASS_ID"])){
-            Env::set("CLASS_ID",$_GET["CLASS_ID"]);
-            if(isset($_GET["TEMPLATE_ID"])){
-                Env::set("TEMPLATE_ID",$_GET["TEMPLATE_ID"]);
-            }
+
+            Env::set("OBJ",$qwerty["OBJ"]);
+
+        }else{
             throw new Exception();
+        }
+
+    }
+
+    private function checkAvailablePostScripts(){
+
+        Env::set("SSE",SITE_STRUCTURE_ELEMENT);
+        Env::set("SST",SITE_NULL_STRUCTURE_TEMPLATE);
+        $this->setWrapper();
+
+        if(Env::contains("QWERTY") && isset(Env::get("QWERTY")["OBJ"])){
+
+            $qwerty = Env::get("QWERTY");
+
+            switch ($qwerty["OBJ"]){
+                case POST_CHANGE_CLASS:
+                    $d = null;
+                    $putdata = fopen("php://input", "r");
+                    while ($data = fread($putdata, 1024)){
+                        $d =$d.$data;
+                    }
+                    parse_str($d,$formData);
+                    Env::set("FR_FORM_DATA_TO_SAVE",$formData);
+                    break;
+                case POST_CHANGE_ELEMENT:
+                    break;
+                case POST_CHANGE_RELATION:
+                    break;
+                case POST_CHANGE_LINK:
+                    break;
+                default:
+                    throw new Exception();
+
+            }
+
+            Env::set("OBJ",$qwerty["OBJ"]);
+
         }else{
             throw new Exception();
         }
@@ -95,40 +192,26 @@ class Route implements CoreState
         $path= parse_url($url, PHP_URL_PATH);
         $array = explode("/", trim($path, "/"));
 
-        Env::set("FR_URL",$url);
-        Env::set("FR_PATH",$path);
-        Env::set("FR_ACTION",$array[0]);
-
-    }
-
-    /**
-     * functions handle html methods
-     */
-    private function getHandler()
-    {
-        $queries = array();
-        parse_str($_SERVER['QUERY_STRING'], $queries);
-        foreach ($queries as $k => $v){
-            Env::set($k,$v);
+        $pos = strpos($url , '?');
+        if($pos !== false){
+            $str = substr($url , $pos+1);
+            parse_str($str,$qwert);
+            Env::set("QWERTY",$qwert);
         }
 
-        $this->fr_DefaultNextCoreStateAfterRoute = new PrepareData();
+        Env::set("FR_URL",$url);
+        Env::set("FR_PATH",$path);
+        Env::set("FR_ACTION",$array);
 
     }
 
-    private function postHandler()
-    {
-
+    private function setWrapper(){
+        if(isset($qwerty["WRAPPER"]) && ($qwerty["WRAPPER"] == 0 || $qwerty["WRAPPER"] == 1) ){
+            Env::set("WRAPPER",$qwerty["WRAPPER"]);
+        }else{
+            Env::set("WRAPPER",1);
+        }
     }
 
-    private function putHandler()
-    {
-
-    }
-
-    private function deleteHandler()
-    {
-
-    }
 
 }

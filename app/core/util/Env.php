@@ -43,5 +43,18 @@ class Env
             throw new UndefinedEnvVariableException("environment variable $varName is not defined");
         }
     }
+    /**
+     * @param string $varName
+     * @return mixed
+     * @throws UndefinedEnvVariableException
+     *
+     * Returns true environment contains variable with name
+     */
+
+    public static function contains(string $varName)
+    {
+        return isset(self::$fr_Env[$varName]);
+    }
+
 
 }

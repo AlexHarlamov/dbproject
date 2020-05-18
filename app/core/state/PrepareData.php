@@ -4,14 +4,14 @@
 namespace app\core\state;
 
 
-use app\core\application\database\FR_DatabaseWorker;
 use app\core\CoreState;
-use app\core\exception\UndefinedApplicationCallException;
 use app\core\exception\UndefinedMethodCallException;
 use app\core\util\App;
 use app\core\util\Env;
-use app\core\pages\listclasses;
 use Exception;
+use PDOException;
+
+include "lemma_language_lib.php";
 
 class PrepareData implements CoreState
 {
@@ -30,33 +30,355 @@ class PrepareData implements CoreState
         $this->fr_DefaultNextCoreStateAfterPrepareDate = new ParseTemplate();
     }
 
-
     function fr_defaultAction(): CoreState
     {
-        // TODO: Implement fr_defaultAction() method.
-
+        //подготовка структуры сайта
+        $this->prepareSiteStructure(Env::get("SSE"),Env::get("SST"));
 
         try {
-            Env::set("VIEW_TEMPLATE", App::call(DATABASE_WORKER, "select", [])); // get template
-            $this->checkRegularExpressions();
-            Env::set("VIEW_DATA",App::call(DATABASE_WORKER,"select",[])); //get data
-        } catch (UndefinedApplicationCallException $e) {
-        } catch (UndefinedMethodCallException $e) {
+            switch (Env::get("FR_ACTION")[0]){
+                case "":
+                    $this->prepareElementData(HELLO_ELEMENT,HELLO_TEMPLATE);
+                    break;
+                case "nullInterface":
+                    switch (Env::get("FR_ACTION")[1]){
+                        case "":
+                            $this->prepareElementData(HELLO_ELEMENT,EMPTY_TEMPLATE);
+                            break;
+                        case "GET":
+                            $this->getHandler();
+                            break;
+                        case "POST":
+                            $this->postHandler();
+                            break;
+                    }
+                    break;
+                case "userInterface":
+                default :
+                    throw new Exception();
+            }
         } catch (Exception $e) {
+            //TODO: Do not ignore
         }
 
         return $this->fr_DefaultNextCoreStateAfterPrepareDate;
     }
 
-    private function checkRegularExpressions(){
-        //check for regular expr inside "VIEW_TEMPLATE"
-        //@list_table:<lemma_classes>
-        $data = [];
-        Env::set("VIEW_TEMPLATE__REGEX__LIST_TABLE__NAME_CLASSES",$data);
+
+private function getHandler(){
+
+        if(Env::contains("OBJ")){
+
+            switch (Env::get("OBJ")){
+                case GET_CLASSES:
+                    $this->prepareGetClasses();
+                    break;
+                case GET_CLASS:
+                    $this->prepareGetClass();
+                    break;
+                case GET_ELEMENTS:
+                    $this->prepareGetElements();
+                    break;
+                case GET_ELEMENT:
+                    if(Env::contains("ELEMENT_ID") ){
+                        if(Env::contains("TEMPLATE_ID")){
+                            $this->prepareElementData(Env::get("ELEMENT_ID"),Env::get("TEMPLATE_ID"));
+                        }
+                        else{
+                            //TODO:сделать дефолтный шаблон?
+                            $this->prepareElementData(Env::get("ELEMENT_ID"),DEFAULT_ELEMENT_TEMPLATE_ID);
+                        }
+                    }
+                    break;
+                case GET_CHANGE_CLASS:
+                    $this->prepareClassToChange();
+                    break;
+                case GET_CHANGE_ELEMENT:
+                    break;
+                default:
+                    throw new Exception();
+            }
+        }
+        else{
+            throw new Exception();
+        }
+}
+
+private function postHandler(){
+
+    if(Env::contains("OBJ")){
+
+        switch (Env::get("OBJ")){
+            case POST_CHANGE_CLASS:
+                if(Env::contains("FR_FORM_DATA_TO_SAVE")){
+                    $message = $this->saveNewClass();
+                    $this->preparePostAnswer($message);
+                }
+                break;
+            case POST_CHANGE_ELEMENT:
+                break;
+            case POST_CHANGE_RELATION:
+                break;
+            case POST_CHANGE_LINK:
+                break;
+            default:
+                throw new Exception();
+        }
+    }else{
+        throw new Exception();
+    }
+
+}
+
+    private function prepareClassData($classId,$templateId){
+
+        $function = '@class('.$classId.','.$templateId.')';
+        $result = classPrepare($function,$classId,$templateId);
+
+        $templateNode['CURRENT_TEMPLATE'] = $function;
+        $templateNode[$result['tempK']] = $result['tempV'];
+        $dataNode[$result['dataK']] = $result['dataV'];
+
+        Env::set("VIEW_TEMPLATE",$templateNode);
+        Env::set("VIEW_DATA",$dataNode);
+    }
+
+    private function prepareElementData($elementId,$templateId){
+
+        $function = '@element('.$elementId.','.$templateId.')';
+        $result = elementPrepare($function,$elementId,$templateId);
+
+        $templateNode['CURRENT_TEMPLATE'] = $function;
+        $templateNode[$result['tempK']] = $result['tempV'];
+        $dataNode[$result['dataK']] = $result['dataV'];
+
+        Env::set("VIEW_TEMPLATE",$templateNode);
+        Env::set("VIEW_DATA",$dataNode);
+    }
+
+    private function prepareSiteStructure($elementId,$templateId){
+
+        $function = '@element('.$elementId.','.$templateId.')';
+        $result = elementPrepare($function,$elementId,$templateId);
+
+        $templateNode['CURRENT_TEMPLATE'] = $function;
+        $templateNode[$result['tempK']] = $result['tempV'];
+        $dataNode[$result['dataK']] = $result['dataV'];
+
+        Env::set("SITE_TEMPLATE",$templateNode);
+        Env::set("SITE_DATA",$dataNode);//null
+
+    }
+
+    private function prepareClassToChange(){
+        $this->prepareElementData(DEFAULT_CLASS_CHANGE_ELEMENT_ID,DEFAULT_CLASS_CHANGE_TEMPLATE_ID);
+    }
+
+    private function saveNewClass(){
+        $message = null;
+
+        $data = Env::get("FR_FORM_DATA_TO_SAVE");
+
+        $classID = null;
+
+        if(isset($data["ClassName"]) && $data["ClassName"]!=""){
+
+            $fields = [
+                "NAME",
+                "I_NAME",
+                "COMMENTS"
+            ];
+            $conditions = [
+                "NAME"=>$data["ClassName"],
+                "I_NAME" =>"0_".$data["ClassName"],
+                "COMMENTS" => $data["ClassComment"]
+            ];
+
+            try{
+                $arr =  App::call(DATABASE_WORKER, "insert", [
+                    "into" => "lemma_classes",
+                    "fields" => $fields,
+                    "conditions" => $conditions
+                ]);
+            }catch (PDOException $e) {
+                return $e->getMessage();
+            } catch (UndefinedMethodCallException $e) {
+            } catch (Exception $e) {
+                //TODO:error
+            }
+
+            if(empty($arr)){
+                return "no data";
+            }
+            else{
+                $classID = $arr["id"];
+            }
+
+
+
+
+            $i = 0;
+            while(isset($data["AttributeName".$i])){
+
+                if( isset($data["AttributeComment".$i]) &&
+                    isset($data["AttributeType".$i]) &&
+                    isset($data["AttributeSize".$i]) &&
+                    isset($data["AttributeIndexed".$i]) &&
+                    isset($data["AttributeNull".$i])
+                ){
+                    $fields = [
+                        "NAME",
+                        "I_NAME",
+                        "COMMENTS",
+                        "ATTRIBUTE_TYPE",
+                        "ATTRIBUTE_SIZE",
+                        "OWNER_CLASS_ID",
+                        "IS_INDEXED",
+                        "IS_NOTNULL"
+                              ];
+                    $conditions = [
+                        "NAME"=>$data["AttributeName".$i],
+                        "I_NAME"=>"0_".$data["AttributeName".$i],
+                        "COMMENTS"=>$data["AttributeComment".$i],
+                        "ATTRIBUTE_TYPE"=>$data["AttributeType".$i],
+                        "ATTRIBUTE_SIZE"=>$data["AttributeSize".$i],
+                        "OWNER_CLASS_ID"=>$classID,
+                        "IS_INDEXED"=>$data["AttributeIndexed".$i],
+                        "IS_NOTNULL"=>$data["AttributeNull".$i]
+                    ];
+
+                    try{
+                        $arr =  App::call(DATABASE_WORKER, "insert", [
+                            "into" => "lemma_attributes",
+                            "fields" => $fields,
+                            "conditions" => $conditions
+                        ]);
+                    }catch (PDOException $e) {
+                        return $e->getMessage();
+                    } catch (UndefinedMethodCallException $e) {
+                    } catch (Exception $e) {
+                        return $e->getMessage();
+                    }
+
+                    if(empty($arr)){
+                        return "no data";
+                    }
+
+                }else{
+                    //error
+                }
+
+            $i++;
+            }
+
+            $i = 0;
+
+            while(isset($data["TemplateName".$i])){
+
+            if( isset($data["TemplateComment".$i]) &&
+                isset($data["TemplateBody".$i])
+            ){
+                $fields = [
+                    "NAME",
+                    "I_NAME",
+                    "COMMENTS",
+                    "BODY",
+                    "OWNER_CLASS_ID"
+                ];
+                $conditions = [
+                    "NAME"=>$data["TemplateName".$i],
+                    "I_NAME"=>"0_".$data["TemplateName".$i],
+                    "COMMENTS"=>$data["TemplateComment".$i],
+                    "BODY"=>$data["TemplateBody".$i],
+                    "OWNER_CLASS_ID"=>$classID
+                ];
+
+                try{
+                    $arr =  App::call(DATABASE_WORKER, "insert", [
+                        "into" => "lemma_templates",
+                        "fields" => $fields,
+                        "conditions" => $conditions
+                    ]);
+                }catch (PDOException $e) {
+                    return $e->getMessage();
+                } catch (UndefinedMethodCallException $e) {
+                } catch (Exception $e) {
+                    //TODO:error
+                }
+
+                if(empty($arr)){
+                    return "no data";
+                }
+
+            }else{
+                //error
+            }
+
+            $i++;
+        }
+
+        $message = "SUCCESS";
+
+    }else{
+            $message = "ClassName not set";
+        }
+
+        return $message;
     }
 
     function fr_executeHookCallbacks($state_option = null)
     {
         // TODO: Implement fr_executeHookCallbacks() method.
+    }
+
+    private function preparePostAnswer($message)
+    {
+        Env::set("VIEW_TEMPLATE",[ 'CURRENT_TEMPLATE'=>$message]);
+        Env::set("VIEW_DATA",[]);
+        //Env::set("WRAPPER",0);
+    }
+
+    private function prepareGetClass(){
+
+        $classID = Env::get("CLASS_ID");
+
+        $keyR = '@classStructure('.$classID.')';
+        $result = classStructPrepare($classID,$keyR);
+
+        $templateNode['CURRENT_TEMPLATE'] = $keyR;
+        $templateNode[$result['tempK']] = $result['tempV'];
+        $dataNode[$result['dataK']] = $result['dataV'];
+
+        Env::set("VIEW_TEMPLATE",$templateNode);
+        Env::set("VIEW_DATA",$dataNode);
+    }
+
+    private function prepareGetClasses()
+    {
+        $keyR = '@table(lemma_classes,[])';
+
+        $result = tablePrepare("lemma_classes","[]",$keyR);
+
+        $templateNode['CURRENT_TEMPLATE'] = $keyR;
+        $templateNode[$result['tempK']] = $result['tempV'];
+        $dataNode[$result['dataK']] = $result['dataV'];
+
+        Env::set("VIEW_TEMPLATE",$templateNode);
+        Env::set("VIEW_DATA",$dataNode);
+    }
+
+    private function prepareGetElements()
+    {
+        $tableName = getClassTable(Env::get("CLASS_ID"));
+        $keyR = "@table($tableName,[])";
+
+        $result = tablePrepare($tableName,"[]",$keyR);
+
+        $templateNode['CURRENT_TEMPLATE'] = $keyR;
+        $templateNode[$result['tempK']] = $result['tempV'];
+        $dataNode[$result['dataK']] = $result['dataV'];
+
+        Env::set("VIEW_TEMPLATE",$templateNode);
+        Env::set("VIEW_DATA",$dataNode);
     }
 }

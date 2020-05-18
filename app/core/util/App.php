@@ -42,7 +42,7 @@ class App
      *
      * Provides functionality of calling methods in the safe environment
      */
-    public static function call($appName, $methodName, $variables){
+    public static function call($appName, $methodName, $variables = []){
         if(isset(self::$fr_App[$appName])){
             if(method_exists(self::$fr_App[$appName],$methodName)){
                 try{

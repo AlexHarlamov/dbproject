@@ -1,0 +1,72 @@
+__________________________________________________
+LEMMA LANGUAGE DOCUMENTATION (пока что на русском)
+version 0.0
+__________________________________________________
+
+Шаблоны состоят из html-разметки и лемма-меток.
+
+Существуют метки двух типов:
+    1) @NAME() - означает, что вместо этой метки нужно подставить значение поля NAME из базы данных
+    2) @NAME_OF_FUNCTION(arg1,arg2,...) - означает, что нужно провести некоторые манипуляции,
+       зависящие от функции и параметров, после которых появиться возможность получить данные
+       и подставить их специальным образом вместо этой метки
+
+Обработка меток:
+    На стадии PrepareData строиться два идентичных по структуре дерева : TemplateTree и DataTree,
+    которые содержат все нужные шаблоны и данные соответственно.
+    TemplateTree : в каждом узле лежит ассоциативный массив, который содержит обязательный CURRENT_TEMPLATE и др:
+                   CURRENT_TEMPLATE => "шаблон текущего уровня с метками",
+                   "NAME_OF_FUNCTION(arg1,arg2,...)" => новый_узел,
+                   "NAME()" => ""
+    DataTree : в каждом узле лежит ассоциативный массив, который может содержать:
+                       "NAME_OF_FUNCTION(arg1,arg2,...)" => новый узел,
+                       "NAME()" => "ИванИванычИванов"
+
+     На стадии ParseTemplate происходит параллельный проход в глубину по деревьям TemplateTree и DataTree.
+     В каждом узле происходит следующее:
+        1)Поиск слева направо по CURRENT_TEMPLATE_ЗНАЧЕНИЕ метки
+            1)метка найдена:
+                если это функция, то переходим на внутренний узел (рекурсия). Функция от узла возвращает готовый
+                    текст, в который данные были подставленны по меткам. Этот текст подставляем вместо найденой метки в
+                    CURRENT_TEMPLATE_ЗНАЧЕНИЕ.
+                если нет, то из DataTree этой метке берется значение и подставляется в CURRENT_TEMPLATE_ЗНАЧЕНИЕ
+            2)меток не было:
+                выход из цикла
+        2)Возвращаем обновленный CURRENT_TEMPLATE_ЗНАЧЕНИЕ
+
+Метки-функции:
+    = шаблоны, в которые они преобразуются ( - при этом совершаются какие-то манипуляции с данными )*
+
+@classStructure(classID)
+    = "@table(lemma_classes,[ID => classID]) <br/> @table(lemma_attributes,[OWNER_CLASS_ID => classID])"
+
+@table(tableName,['argKey1' => 'argVal1' , ...])
+    = "<table> @thread(tableName) @body(tableName,[argKey1 => argVal1 , ...]) </table>"
+
+@thread(tableName)
+    = "<thead><tr> @KEYS(tableName) </tr></thead>"
+
+@keys(tableName) - генерирует нужное количество "<td>@NAME()</td>"
+    = DEFAULT_CONCATENATION_PATTERN
+
+@body(tableName,['argKey1' => 'argVal1' , ...])
+    = "<tbody>@row(tableName,['argKey1' => 'argVal1 ', ...])</tbody>"
+
+@row(tableName,['argKey1' => 'argVal1' , ...]) - генерирует нужное количество "<tr>@COLS(tableName)</tr>"
+    = DEFAULT_CONCATENATION_PATTERN
+
+@cols(tableName) - генерирует нужное количество "<td>@col()</td>"
+    = DEFAULT_CONCATENATION_PATTERN
+
+@element(element_id,template_id)
+    = шаблон,чей id - это template_id
+
+@class(class_id,template_id)
+    = шаблон,чей id - это template_id
+
+
+
+
+
+
+
