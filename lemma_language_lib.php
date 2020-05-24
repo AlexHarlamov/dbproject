@@ -39,6 +39,70 @@ function getTemplate($templateId){
     return null;
 }
 
+function getTemplateIds($classId){
+    try {
+        $arr = App::call(DATABASE_WORKER, "select", [
+            "from" => "lemma_templates",
+            "what" => [
+                "ID"
+            ],
+            "filter" => [
+                "OWNER_CLASS_ID"
+            ],
+            "conditions" => [
+                $classId
+            ]
+        ]);
+        if (empty($arr)) {
+            throw  new UndefinedTemplateException("template with id $classId does not exist");
+        }else{
+            $result = null;
+            foreach ($arr as $val){
+                $h = "/nullInterface/GET/?OBJ=3&ELEMENT_ID=#&TEMPLATE_ID=".$val["ID"];
+                $result.="<a href=\"$h\">{$val["ID"]}</a> &nbsp;";
+            }
+            return $result;
+        }
+    } catch (UndefinedApplicationCallException $e) {
+    } catch (UndefinedMethodCallException $e) {
+    } catch (Exception $e) {
+        //TODO:Handle
+    }
+    return null;
+}
+
+function getElementLinksId($classId,$needSide,$haveSide){
+    try {
+        $arr = App::call(DATABASE_WORKER, "select", [
+            "from" => "lemma_relations",
+            "what" => [
+                $needSide
+            ],
+            "filter" => [
+                $haveSide
+            ],
+            "conditions" => [
+                $classId
+            ]
+        ]);
+        if (empty($arr)) {
+            return "";
+        }else{
+            $result = null;
+            foreach ($arr as $val){
+                $h = "/nullInterface/GET/?OBJ=1&CLASS_ID=".$val[$needSide];
+                $result.="<a href=\"$h\">{$val[$needSide]}</a> &nbsp;";
+            }
+            return $result;
+        }
+    } catch (UndefinedApplicationCallException $e) {
+    } catch (UndefinedMethodCallException $e) {
+    } catch (Exception $e) {
+        //TODO:Handle
+    }
+    return null;
+}
+
 /**
  * @param $elementId
  * @return mixed|null
@@ -249,7 +313,11 @@ function rowsPrepare($tableName,$aF,$keyR){
             ]);
         }
         if(empty($arr)){
-            throw  new DataBaseException("");
+            return ['tempK' => $keyR ,
+                'tempV' => ["CURRENT_TEMPLATE"=>""],
+                'dataK' => $keyR ,
+                'dataV' => []
+            ];
         }
     }catch (UndefinedApplicationCallException $e) {
     } catch (UndefinedMethodCallException $e) {
@@ -622,7 +690,7 @@ function recursionParseLoop($template,$data){
 
         /*variable*/
         }elseif(1 == preg_match(DEFAULT_VAR_PATTERN,$str,$matches, PREG_UNMATCHED_AS_NULL)){
-            if(!empty($matches) && isset($currentData[$matches[0]])){
+            if(!empty($matches)){
                 $pos = strpos($str, $matches[0]);
                 $currentTemplate = variableParse($currentTemplate,$currentData);
             }

@@ -147,4 +147,8 @@ define("GET_CHANGE_ELEMENT",5);
 define("GET_CHANGE_RELATION",6);
 define("GET_CHANGE_LINK",7);
 
+define("GET_CLASS_TEMPLATES_ID",-1);//системные вызовы, которые лучше исзменить на более умные шаблоны
+define("GET_CLASS_RELATION_TO",-2);//но я пока не придумала таких магических шаблонов
+define("GET_CLASS_RELATION_FROM",-3);//боль-печаль
+
 

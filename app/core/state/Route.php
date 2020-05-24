@@ -96,6 +96,10 @@ class Route implements CoreState
         Env::set("SST",SITE_NULL_STRUCTURE_TEMPLATE);
     }
 
+    /**
+     * @throws UndefinedEnvVariableException
+     * Роутинг любого GET
+     */
     private function checkAvailableGetScripts(){
 
         Env::set("SSE",SITE_STRUCTURE_ELEMENT);
@@ -136,6 +140,17 @@ class Route implements CoreState
                     break;
                 case GET_CHANGE_ELEMENT:
                     break;
+                case GET_CLASS_TEMPLATES_ID:
+                    if(isset($qwerty["CLASS_ID"])){
+                        Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
+                    }
+                    break;
+                case GET_CLASS_RELATION_TO:
+                case GET_CLASS_RELATION_FROM:
+                if(isset($qwerty["CLASS_ID"])){
+                    Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
+                }
+                break;
                 default:
                     throw new Exception();
             }
@@ -148,6 +163,11 @@ class Route implements CoreState
 
     }
 
+    /**
+     * @throws UndefinedEnvVariableException
+     *
+     * Роутинг любого POST
+     */
     private function checkAvailablePostScripts(){
 
         Env::set("SSE",SITE_STRUCTURE_ELEMENT);
@@ -186,6 +206,9 @@ class Route implements CoreState
         }
     }
 
+    /**
+     * разбор url
+     */
     private function prepareEnvVariables(){
 
         $url = $_SERVER['REQUEST_URI'];
@@ -205,11 +228,24 @@ class Route implements CoreState
 
     }
 
+    /**
+     * @throws UndefinedEnvVariableException
+     *
+     * если в url есть WRAPPER=0, то оболочка,т.е. вид сайта не добавляется к контенту
+     * если в url нет, то устанавливается = 1
+     */
     private function setWrapper(){
-        if(isset($qwerty["WRAPPER"]) && ($qwerty["WRAPPER"] == 0 || $qwerty["WRAPPER"] == 1) ){
-            Env::set("WRAPPER",$qwerty["WRAPPER"]);
-        }else{
+        if(!Env::contains("QWERTY")){
             Env::set("WRAPPER",1);
+        }
+        else{
+            $qwerty = Env::get("QWERTY");
+
+            if(isset($qwerty["WRAPPER"]) && ($qwerty["WRAPPER"] == 0 || $qwerty["WRAPPER"] == 1) ){
+                Env::set("WRAPPER",$qwerty["WRAPPER"]);
+            }else{
+                Env::set("WRAPPER",1);
+            }
         }
     }
 

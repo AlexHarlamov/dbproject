@@ -43,6 +43,7 @@ class PrepareData implements CoreState
                 case "nullInterface":
                     switch (Env::get("FR_ACTION")[1]){
                         case "":
+                            //для начальной странички
                             $this->prepareElementData(HELLO_ELEMENT,EMPTY_TEMPLATE);
                             break;
                         case "GET":
@@ -64,7 +65,11 @@ class PrepareData implements CoreState
         return $this->fr_DefaultNextCoreStateAfterPrepareDate;
     }
 
-
+    /**
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     *
+     * Подготовка любого GET
+     */
 private function getHandler(){
 
         if(Env::contains("OBJ")){
@@ -95,6 +100,15 @@ private function getHandler(){
                     break;
                 case GET_CHANGE_ELEMENT:
                     break;
+                case GET_CLASS_TEMPLATES_ID:
+                    $this->prepareTemplatesList();
+                    break;
+                case GET_CLASS_RELATION_TO:
+                    $this->prepareClassRelations("FROM_CLASS_ID","TO_CLASS_ID");
+                    break;
+                case GET_CLASS_RELATION_FROM:
+                    $this->prepareClassRelations("TO_CLASS_ID","FROM_CLASS_ID");
+                    break;
                 default:
                     throw new Exception();
             }
@@ -104,6 +118,11 @@ private function getHandler(){
         }
 }
 
+    /**
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     *
+     * Подготовка любого POST
+     */
 private function postHandler(){
 
     if(Env::contains("OBJ")){
@@ -130,7 +149,7 @@ private function postHandler(){
 
 }
 
-    private function prepareClassData($classId,$templateId){
+private function prepareClassData($classId,$templateId){
 
         $function = '@class('.$classId.','.$templateId.')';
         $result = classPrepare($function,$classId,$templateId);
@@ -143,7 +162,13 @@ private function postHandler(){
         Env::set("VIEW_DATA",$dataNode);
     }
 
-    private function prepareElementData($elementId,$templateId){
+    /**
+     * @param $elementId
+     * @param $templateId
+     *
+     * Получить данные и шаблон для элемента
+     */
+private function prepareElementData($elementId,$templateId){
 
         $function = '@element('.$elementId.','.$templateId.')';
         $result = elementPrepare($function,$elementId,$templateId);
@@ -156,7 +181,12 @@ private function postHandler(){
         Env::set("VIEW_DATA",$dataNode);
     }
 
-    private function prepareSiteStructure($elementId,$templateId){
+    /**
+     * @param $elementId
+     * @param $templateId
+     * Получить данные и шаблон для оболочки сайта (навигация, кнопки...)
+     */
+private function prepareSiteStructure($elementId,$templateId){
 
         $function = '@element('.$elementId.','.$templateId.')';
         $result = elementPrepare($function,$elementId,$templateId);
@@ -170,11 +200,21 @@ private function postHandler(){
 
     }
 
-    private function prepareClassToChange(){
+    /**
+     * Получить данные и шаблон для создания класса
+     * По-идее тут должно быть реализовано еще и редактирование класса, если задан classID
+     */
+private function prepareClassToChange(){
         $this->prepareElementData(DEFAULT_CLASS_CHANGE_ELEMENT_ID,DEFAULT_CLASS_CHANGE_TEMPLATE_ID);
     }
 
-    private function saveNewClass(){
+    /**
+     * @return string
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     *
+     * Создает новый класс, по полученным данным из формы после нажатия кнопки submit
+     */
+private function saveNewClass(){
         $message = null;
 
         $data = Env::get("FR_FORM_DATA_TO_SAVE");
@@ -326,19 +366,28 @@ private function postHandler(){
         return $message;
     }
 
-    function fr_executeHookCallbacks($state_option = null)
+function fr_executeHookCallbacks($state_option = null)
     {
         // TODO: Implement fr_executeHookCallbacks() method.
     }
 
-    private function preparePostAnswer($message)
+    /**
+     * @param $message
+     * Подготовка ответа на попытку сохранить-изменить данные через форму,
+     * ответ будет некой ошибкой либо success
+     */
+private function preparePostAnswer($message)
     {
         Env::set("VIEW_TEMPLATE",[ 'CURRENT_TEMPLATE'=>$message]);
         Env::set("VIEW_DATA",[]);
-        //Env::set("WRAPPER",0);
     }
 
-    private function prepareGetClass(){
+    /**
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     *
+     * Получить на просмотр Класс
+     */
+private function prepareGetClass(){
 
         $classID = Env::get("CLASS_ID");
 
@@ -353,13 +402,17 @@ private function postHandler(){
         Env::set("VIEW_DATA",$dataNode);
     }
 
-    private function prepareGetClasses()
-    {
+    /**
+     * Получить на просмотр всю таблицу lemma_classes
+     */
+private function prepareGetClasses(){
         $keyR = '@table(lemma_classes,[])';
+
+        $currentTemplate = getTemplate(DEFAULT_CLASSES_TEMPLATE);
 
         $result = tablePrepare("lemma_classes","[]",$keyR);
 
-        $templateNode['CURRENT_TEMPLATE'] = $keyR;
+        $templateNode['CURRENT_TEMPLATE'] = $currentTemplate;
         $templateNode[$result['tempK']] = $result['tempV'];
         $dataNode[$result['dataK']] = $result['dataV'];
 
@@ -367,18 +420,64 @@ private function postHandler(){
         Env::set("VIEW_DATA",$dataNode);
     }
 
-    private function prepareGetElements()
-    {
+    /**
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     * Получить на просмотр Элементы конкретного Класса, вывод таблицы Класса
+     */
+private function prepareGetElements(){
         $tableName = getClassTable(Env::get("CLASS_ID"));
         $keyR = "@table($tableName,[])";
 
         $result = tablePrepare($tableName,"[]",$keyR);
 
-        $templateNode['CURRENT_TEMPLATE'] = $keyR;
+        $str = "#attach_library(\"addButtonsListClassElements\");\r\n";
+
+        $templateNode['CURRENT_TEMPLATE'] = $str.$keyR;
         $templateNode[$result['tempK']] = $result['tempV'];
         $dataNode[$result['dataK']] = $result['dataV'];
 
         Env::set("VIEW_TEMPLATE",$templateNode);
         Env::set("VIEW_DATA",$dataNode);
+    }
+
+    /**
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     * Системная функция для получения списка шаблонов
+     */
+private function prepareTemplatesList(){
+
+        if(Env::contains("CLASS_ID")){
+
+            $str = getTemplateIds(Env::get("CLASS_ID"));
+
+            Env::set("VIEW_TEMPLATE",["CURRENT_TEMPLATE"=>$str]);
+            Env::set("VIEW_DATA",[]);
+
+        }else{
+            throw new Exception();
+        }
+
+    }
+
+    /**
+     * @param $needSide
+     * @param $haveSide
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     *
+     * Системная функция для получения списка Отношений
+     */
+private function prepareClassRelations($needSide, $haveSide){
+
+        if(Env::contains("CLASS_ID")){
+
+            $str = getElementLinksId(Env::get("CLASS_ID"),$needSide,$haveSide);
+
+            Env::set("VIEW_TEMPLATE",["CURRENT_TEMPLATE"=>$str]);
+            Env::set("VIEW_DATA",[]);
+
+        }else{
+            throw new Exception();
+        }
+
     }
 }
