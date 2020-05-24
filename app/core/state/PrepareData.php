@@ -43,6 +43,7 @@ class PrepareData implements CoreState
                 case "nullInterface":
                     switch (Env::get("FR_ACTION")[1]){
                         case "":
+                            //для начальной странички
                             $this->prepareElementData(HELLO_ELEMENT,EMPTY_TEMPLATE);
                             break;
                         case "GET":
@@ -64,7 +65,11 @@ class PrepareData implements CoreState
         return $this->fr_DefaultNextCoreStateAfterPrepareDate;
     }
 
-
+    /**
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     *
+     * Подготовка любого GET
+     */
 private function getHandler(){
 
         if(Env::contains("OBJ")){
@@ -113,6 +118,11 @@ private function getHandler(){
         }
 }
 
+    /**
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     *
+     * Подготовка любого POST
+     */
 private function postHandler(){
 
     if(Env::contains("OBJ")){
@@ -152,6 +162,12 @@ private function prepareClassData($classId,$templateId){
         Env::set("VIEW_DATA",$dataNode);
     }
 
+    /**
+     * @param $elementId
+     * @param $templateId
+     *
+     * Получить данные и шаблон для элемента
+     */
 private function prepareElementData($elementId,$templateId){
 
         $function = '@element('.$elementId.','.$templateId.')';
@@ -165,6 +181,11 @@ private function prepareElementData($elementId,$templateId){
         Env::set("VIEW_DATA",$dataNode);
     }
 
+    /**
+     * @param $elementId
+     * @param $templateId
+     * Получить данные и шаблон для оболочки сайта (навигация, кнопки...)
+     */
 private function prepareSiteStructure($elementId,$templateId){
 
         $function = '@element('.$elementId.','.$templateId.')';
@@ -179,10 +200,20 @@ private function prepareSiteStructure($elementId,$templateId){
 
     }
 
+    /**
+     * Получить данные и шаблон для создания класса
+     * По-идее тут должно быть реализовано еще и редактирование класса, если задан classID
+     */
 private function prepareClassToChange(){
         $this->prepareElementData(DEFAULT_CLASS_CHANGE_ELEMENT_ID,DEFAULT_CLASS_CHANGE_TEMPLATE_ID);
     }
 
+    /**
+     * @return string
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     *
+     * Создает новый класс, по полученным данным из формы после нажатия кнопки submit
+     */
 private function saveNewClass(){
         $message = null;
 
@@ -340,12 +371,22 @@ function fr_executeHookCallbacks($state_option = null)
         // TODO: Implement fr_executeHookCallbacks() method.
     }
 
+    /**
+     * @param $message
+     * Подготовка ответа на попытку сохранить-изменить данные через форму,
+     * ответ будет некой ошибкой либо success
+     */
 private function preparePostAnswer($message)
     {
         Env::set("VIEW_TEMPLATE",[ 'CURRENT_TEMPLATE'=>$message]);
         Env::set("VIEW_DATA",[]);
     }
 
+    /**
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     *
+     * Получить на просмотр Класс
+     */
 private function prepareGetClass(){
 
         $classID = Env::get("CLASS_ID");
@@ -361,6 +402,9 @@ private function prepareGetClass(){
         Env::set("VIEW_DATA",$dataNode);
     }
 
+    /**
+     * Получить на просмотр всю таблицу lemma_classes
+     */
 private function prepareGetClasses(){
         $keyR = '@table(lemma_classes,[])';
 
@@ -376,6 +420,10 @@ private function prepareGetClasses(){
         Env::set("VIEW_DATA",$dataNode);
     }
 
+    /**
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     * Получить на просмотр Элементы конкретного Класса, вывод таблицы Класса
+     */
 private function prepareGetElements(){
         $tableName = getClassTable(Env::get("CLASS_ID"));
         $keyR = "@table($tableName,[])";
@@ -392,6 +440,10 @@ private function prepareGetElements(){
         Env::set("VIEW_DATA",$dataNode);
     }
 
+    /**
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     * Системная функция для получения списка шаблонов
+     */
 private function prepareTemplatesList(){
 
         if(Env::contains("CLASS_ID")){
@@ -407,6 +459,13 @@ private function prepareTemplatesList(){
 
     }
 
+    /**
+     * @param $needSide
+     * @param $haveSide
+     * @throws \app\core\exception\UndefinedEnvVariableException
+     *
+     * Системная функция для получения списка Отношений
+     */
 private function prepareClassRelations($needSide, $haveSide){
 
         if(Env::contains("CLASS_ID")){

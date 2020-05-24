@@ -10,12 +10,8 @@ class FR_HTMLConfigurator
 {
     public function constructDocument(){
         /*$title = Env::get("FR_TITLE");*/
-        $title = "Лемма";
         $scripts_injection = Env::get("FR_SCRIPTS_HTML");
-        $user_interface = "";
-        $content = Env::get("FR_OUTPUT_BUFFER");
-        $home = "";
-        $null_interface = "";
+        $content = Env::get("FR_OUTPUT_BUFFER");//внутри оболочки есть эта переменная, которая подставляется через eval
 
         if(0 == Env::get("WRAPPER")){
             $html_document = $content;

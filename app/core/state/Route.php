@@ -96,6 +96,10 @@ class Route implements CoreState
         Env::set("SST",SITE_NULL_STRUCTURE_TEMPLATE);
     }
 
+    /**
+     * @throws UndefinedEnvVariableException
+     * Роутинг любого GET
+     */
     private function checkAvailableGetScripts(){
 
         Env::set("SSE",SITE_STRUCTURE_ELEMENT);
@@ -159,6 +163,11 @@ class Route implements CoreState
 
     }
 
+    /**
+     * @throws UndefinedEnvVariableException
+     *
+     * Роутинг любого POST
+     */
     private function checkAvailablePostScripts(){
 
         Env::set("SSE",SITE_STRUCTURE_ELEMENT);
@@ -197,6 +206,9 @@ class Route implements CoreState
         }
     }
 
+    /**
+     * разбор url
+     */
     private function prepareEnvVariables(){
 
         $url = $_SERVER['REQUEST_URI'];
@@ -216,6 +228,12 @@ class Route implements CoreState
 
     }
 
+    /**
+     * @throws UndefinedEnvVariableException
+     *
+     * если в url есть WRAPPER=0, то оболочка,т.е. вид сайта не добавляется к контенту
+     * если в url нет, то устанавливается = 1
+     */
     private function setWrapper(){
         if(!Env::contains("QWERTY")){
             Env::set("WRAPPER",1);
