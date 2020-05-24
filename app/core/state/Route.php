@@ -141,6 +141,12 @@ class Route implements CoreState
                         Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
                     }
                     break;
+                case GET_CLASS_RELATION_TO:
+                case GET_CLASS_RELATION_FROM:
+                if(isset($qwerty["CLASS_ID"])){
+                    Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
+                }
+                break;
                 default:
                     throw new Exception();
             }

@@ -71,6 +71,38 @@ function getTemplateIds($classId){
     return null;
 }
 
+function getElementLinksId($classId,$needSide,$haveSide){
+    try {
+        $arr = App::call(DATABASE_WORKER, "select", [
+            "from" => "lemma_relations",
+            "what" => [
+                $needSide
+            ],
+            "filter" => [
+                $haveSide
+            ],
+            "conditions" => [
+                $classId
+            ]
+        ]);
+        if (empty($arr)) {
+            return "";
+        }else{
+            $result = null;
+            foreach ($arr as $val){
+                $h = "/nullInterface/GET/?OBJ=1&CLASS_ID=".$val[$needSide];
+                $result.="<a href=\"$h\">{$val[$needSide]}</a> &nbsp;";
+            }
+            return $result;
+        }
+    } catch (UndefinedApplicationCallException $e) {
+    } catch (UndefinedMethodCallException $e) {
+    } catch (Exception $e) {
+        //TODO:Handle
+    }
+    return null;
+}
+
 /**
  * @param $elementId
  * @return mixed|null

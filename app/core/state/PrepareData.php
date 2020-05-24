@@ -98,6 +98,12 @@ private function getHandler(){
                 case GET_CLASS_TEMPLATES_ID:
                     $this->prepareTemplatesList();
                     break;
+                case GET_CLASS_RELATION_TO:
+                    $this->prepareClassRelations("FROM_CLASS_ID","TO_CLASS_ID");
+                    break;
+                case GET_CLASS_RELATION_FROM:
+                    $this->prepareClassRelations("TO_CLASS_ID","FROM_CLASS_ID");
+                    break;
                 default:
                     throw new Exception();
             }
@@ -391,6 +397,21 @@ private function prepareTemplatesList(){
         if(Env::contains("CLASS_ID")){
 
             $str = getTemplateIds(Env::get("CLASS_ID"));
+
+            Env::set("VIEW_TEMPLATE",["CURRENT_TEMPLATE"=>$str]);
+            Env::set("VIEW_DATA",[]);
+
+        }else{
+            throw new Exception();
+        }
+
+    }
+
+private function prepareClassRelations($needSide, $haveSide){
+
+        if(Env::contains("CLASS_ID")){
+
+            $str = getElementLinksId(Env::get("CLASS_ID"),$needSide,$haveSide);
 
             Env::set("VIEW_TEMPLATE",["CURRENT_TEMPLATE"=>$str]);
             Env::set("VIEW_DATA",[]);
