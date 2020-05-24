@@ -215,6 +215,10 @@ class Route implements CoreState
         $path= parse_url($url, PHP_URL_PATH);
         $array = explode("/", trim($path, "/"));
 
+        if(!isset($array[1])){
+            $array[1]="";
+        }
+
         $pos = strpos($url , '?');
         if($pos !== false){
             $str = substr($url , $pos+1);
