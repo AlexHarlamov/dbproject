@@ -95,6 +95,9 @@ private function getHandler(){
                     break;
                 case GET_CHANGE_ELEMENT:
                     break;
+                case GET_CLASS_TEMPLATES_ID:
+                    $this->prepareTemplatesList();
+                    break;
                 default:
                     throw new Exception();
             }
@@ -130,7 +133,7 @@ private function postHandler(){
 
 }
 
-    private function prepareClassData($classId,$templateId){
+private function prepareClassData($classId,$templateId){
 
         $function = '@class('.$classId.','.$templateId.')';
         $result = classPrepare($function,$classId,$templateId);
@@ -143,7 +146,7 @@ private function postHandler(){
         Env::set("VIEW_DATA",$dataNode);
     }
 
-    private function prepareElementData($elementId,$templateId){
+private function prepareElementData($elementId,$templateId){
 
         $function = '@element('.$elementId.','.$templateId.')';
         $result = elementPrepare($function,$elementId,$templateId);
@@ -156,7 +159,7 @@ private function postHandler(){
         Env::set("VIEW_DATA",$dataNode);
     }
 
-    private function prepareSiteStructure($elementId,$templateId){
+private function prepareSiteStructure($elementId,$templateId){
 
         $function = '@element('.$elementId.','.$templateId.')';
         $result = elementPrepare($function,$elementId,$templateId);
@@ -170,11 +173,11 @@ private function postHandler(){
 
     }
 
-    private function prepareClassToChange(){
+private function prepareClassToChange(){
         $this->prepareElementData(DEFAULT_CLASS_CHANGE_ELEMENT_ID,DEFAULT_CLASS_CHANGE_TEMPLATE_ID);
     }
 
-    private function saveNewClass(){
+private function saveNewClass(){
         $message = null;
 
         $data = Env::get("FR_FORM_DATA_TO_SAVE");
@@ -326,19 +329,18 @@ private function postHandler(){
         return $message;
     }
 
-    function fr_executeHookCallbacks($state_option = null)
+function fr_executeHookCallbacks($state_option = null)
     {
         // TODO: Implement fr_executeHookCallbacks() method.
     }
 
-    private function preparePostAnswer($message)
+private function preparePostAnswer($message)
     {
         Env::set("VIEW_TEMPLATE",[ 'CURRENT_TEMPLATE'=>$message]);
         Env::set("VIEW_DATA",[]);
-        //Env::set("WRAPPER",0);
     }
 
-    private function prepareGetClass(){
+private function prepareGetClass(){
 
         $classID = Env::get("CLASS_ID");
 
@@ -353,13 +355,14 @@ private function postHandler(){
         Env::set("VIEW_DATA",$dataNode);
     }
 
-    private function prepareGetClasses()
-    {
+private function prepareGetClasses(){
         $keyR = '@table(lemma_classes,[])';
+
+        $currentTemplate = getTemplate(DEFAULT_CLASSES_TEMPLATE);
 
         $result = tablePrepare("lemma_classes","[]",$keyR);
 
-        $templateNode['CURRENT_TEMPLATE'] = $keyR;
+        $templateNode['CURRENT_TEMPLATE'] = $currentTemplate;
         $templateNode[$result['tempK']] = $result['tempV'];
         $dataNode[$result['dataK']] = $result['dataV'];
 
@@ -367,18 +370,34 @@ private function postHandler(){
         Env::set("VIEW_DATA",$dataNode);
     }
 
-    private function prepareGetElements()
-    {
+private function prepareGetElements(){
         $tableName = getClassTable(Env::get("CLASS_ID"));
         $keyR = "@table($tableName,[])";
 
         $result = tablePrepare($tableName,"[]",$keyR);
 
-        $templateNode['CURRENT_TEMPLATE'] = $keyR;
+        $str = "#attach_library(\"addButtonsListClassElements\");\r\n";
+
+        $templateNode['CURRENT_TEMPLATE'] = $str.$keyR;
         $templateNode[$result['tempK']] = $result['tempV'];
         $dataNode[$result['dataK']] = $result['dataV'];
 
         Env::set("VIEW_TEMPLATE",$templateNode);
         Env::set("VIEW_DATA",$dataNode);
+    }
+
+private function prepareTemplatesList(){
+
+        if(Env::contains("CLASS_ID")){
+
+            $str = getTemplateIds(Env::get("CLASS_ID"));
+
+            Env::set("VIEW_TEMPLATE",["CURRENT_TEMPLATE"=>$str]);
+            Env::set("VIEW_DATA",[]);
+
+        }else{
+            throw new Exception();
+        }
+
     }
 }

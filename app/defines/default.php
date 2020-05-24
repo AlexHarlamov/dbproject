@@ -147,4 +147,6 @@ define("GET_CHANGE_ELEMENT",5);
 define("GET_CHANGE_RELATION",6);
 define("GET_CHANGE_LINK",7);
 
+define("GET_CLASS_TEMPLATES_ID",-1);//
+
 

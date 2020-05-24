@@ -136,6 +136,11 @@ class Route implements CoreState
                     break;
                 case GET_CHANGE_ELEMENT:
                     break;
+                case GET_CLASS_TEMPLATES_ID:
+                    if(isset($qwerty["CLASS_ID"])){
+                        Env::set("CLASS_ID",$qwerty["CLASS_ID"]);
+                    }
+                    break;
                 default:
                     throw new Exception();
             }
@@ -206,10 +211,17 @@ class Route implements CoreState
     }
 
     private function setWrapper(){
-        if(isset($qwerty["WRAPPER"]) && ($qwerty["WRAPPER"] == 0 || $qwerty["WRAPPER"] == 1) ){
-            Env::set("WRAPPER",$qwerty["WRAPPER"]);
-        }else{
+        if(!Env::contains("QWERTY")){
             Env::set("WRAPPER",1);
+        }
+        else{
+            $qwerty = Env::get("QWERTY");
+
+            if(isset($qwerty["WRAPPER"]) && ($qwerty["WRAPPER"] == 0 || $qwerty["WRAPPER"] == 1) ){
+                Env::set("WRAPPER",$qwerty["WRAPPER"]);
+            }else{
+                Env::set("WRAPPER",1);
+            }
         }
     }
 
