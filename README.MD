@@ -1,20 +1,20 @@
-#AXIOM PROJECT
-##Installation guide
-###Workspace requires
-####Virtual Environment
+# AXIOM PROJECT
+## Installation guide
+### Workspace requires
+#### Virtual Environment
 - Virtualbox (www.virtualbox.org)
 - Vagrant (www.vagrantup.com) <br>
     plugins: <br>
         vagrant-hostsupdater,<br>
         vagrant-vbguest
-####Virtual workspace
+#### Virtual workspace
 - ubuntu/bionic64 vagrant box (Ubuntu 18.04) (https://app.vagrantup.com/ubuntu/boxes/bionic64)
 - Mysql (https://www.mysql.com/)
 - Nginx (https://www.nginx.com/)
 - php7.4 (php7.4-fpm) (https://gtxtymt.xyz/blog/ubuntu-install-php74-fpm)
-####Helpful things (developing)
+#### Helpful things (developing)
 - Adminer (https://www.adminer.org/)
-###Local environment installation guide
+### Local environment installation guide
 1. Install Virtualbox
 2. Install Vagrant
 3. Configure VagarantFile : <br>
