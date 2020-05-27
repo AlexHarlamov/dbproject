@@ -27,7 +27,9 @@ class FR_JavaScriptIntegrator
 
     public function processAttaching(){
         $this->inner();
-        $this->site();
+        if(Env::get("WRAPPER") == 1) {
+            $this->site();
+        }
     }
 
     private function inner(){

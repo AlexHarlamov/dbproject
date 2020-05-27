@@ -28,6 +28,7 @@ $(document).ready(function(){
         request.send();
         str = request.responseText;
         current = str.replace(/#/g,id);
+        console.log(current);
         $(element0).append("<td>"+current+"</td>");
 
     });

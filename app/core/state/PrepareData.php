@@ -33,7 +33,9 @@ class PrepareData implements CoreState
     function fr_defaultAction(): CoreState
     {
         //подготовка структуры сайта
-        $this->prepareSiteStructure(Env::get("SSE"),Env::get("SST"));
+        if(Env::get("WRAPPER") == 1){
+            $this->prepareSiteStructure(Env::get("SSE"),Env::get("SST"));
+        }
 
         try {
             switch (Env::get("FR_ACTION")[0]){
